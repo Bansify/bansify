@@ -62,18 +62,10 @@ export const PageShell: React.FC<{
         </div>
       }
       dock={APP_DOCK}
-      profile={
-        <button
-          type="button"
-          onClick={openAccountCentre}
-          title={signedIn && account ? `${account.name || account.username} — account centre` : 'Sign in with Bansify'}
-          aria-label="Account centre"
-          className="w-9 h-9 rounded-full overflow-hidden ring-1 ring-zinc-200 dark:ring-zinc-700 bg-[#0494f4] text-white flex items-center justify-center text-xs font-bold cursor-pointer"
-        >
-          {avatar ? <img src={avatar as string} alt="" className="w-full h-full object-cover" /> : signedIn && account ? initial : <span className="text-[10px]">In</span>}
-        </button>
-      }
-      headerAction={<span className="text-xs font-medium text-zinc-400 capitalize">{activePage}</span>}
+      profileName={signedIn && account ? (account.name || account.username) : undefined}
+      profileEmail={signedIn && account ? account.email : undefined}
+      profileAvatar={(account?.avatarUrl || account?.avatar_url) as string | undefined}
+      onProfileClick={openAccountCentre}
     >
       {children}
     </AppShell>

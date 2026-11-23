@@ -35,8 +35,11 @@ interface AppShellProps {
   brandLogoSrc?: string;
   panelFooter?: React.ReactNode;
   dock?: RailItem[];
-  profile?: React.ReactNode;
-  headerAction?: React.ReactNode;
+  /** Profile block at the bottom of the panel. */
+  profileName?: string;
+  profileEmail?: string;
+  profileAvatar?: string;
+  onProfileClick?: () => void;
   children: React.ReactNode;
 }
 
@@ -63,8 +66,10 @@ export const AppShell: React.FC<AppShellProps> = ({
   brandLogoSrc = '/assets/brand/logo.png',
   panelFooter,
   dock,
-  profile,
-  headerAction,
+  profileName,
+  profileEmail,
+  profileAvatar,
+  onProfileClick,
   children,
 }) => {
   const { isDark, toggleTheme } = useTheme();
@@ -83,26 +88,38 @@ export const AppShell: React.FC<AppShellProps> = ({
     return (
       <div className="flex flex-col h-full bg-white dark:bg-[#212121]">
         {/* Brand */}
-        <div className={`flex items-center gap-2.5 h-14 shrink-0 ${open ? 'px-4' : 'justify-center px-0'}`}>
+        <div className={`flex items-center h-14 shrink-0 ${open ? 'gap-2.5 px-4' : 'justify-center px-0'}`}>
           <img src={brandLogoSrc} alt="Bansify" className="w-8 h-8 rounded-lg object-contain shrink-0" />
           {open && <span className="text-[18px] font-black tracking-tight text-[#0494f4] dark:text-[#4cb4ff]">{brandName}</span>}
+          {open && !mobile && (
+            <button
+              type="button"
+              onClick={() => setExpanded(false)}
+              aria-label="Collapse panel"
+              title="Collapse"
+              className="ml-auto w-7 h-7 rounded-lg flex items-center justify-center text-zinc-400 hover:bg-zinc-100 dark:hover:bg-[#2a2a2a] hover:text-zinc-600 dark:hover:text-zinc-200 cursor-pointer"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+          )}
+          {!open && !mobile && (
+            <span className="sr-only">Collapsed</span>
+          )}
         </div>
 
-        {/* Fold control sits directly under the brand */}
-        <div className={`pb-2 ${open ? 'px-3' : 'px-0 flex justify-center'}`}>
-          <button
-            type="button"
-            onClick={() => (mobile ? setMobileNav(false) : setExpanded((v) => !v))}
-            aria-label={mobile ? 'Close navigation' : expanded ? 'Collapse panel' : 'Expand panel'}
-            title={mobile ? 'Close' : expanded ? 'Collapse' : 'Expand'}
-            className={`inline-flex items-center gap-1.5 h-7 rounded-lg text-zinc-400 hover:bg-zinc-100 dark:hover:bg-[#2a2a2a] hover:text-zinc-600 dark:hover:text-zinc-200 cursor-pointer ${
-              open ? 'px-2' : 'w-7 justify-center'
-            }`}
-          >
-            {mobile ? <X className="w-4 h-4" /> : expanded ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-            {open && !mobile && <span className="text-[11px] font-medium">Collapse</span>}
-          </button>
-        </div>
+        {!open && !mobile && (
+          <div className="flex justify-center pb-2">
+            <button
+              type="button"
+              onClick={() => setExpanded(true)}
+              aria-label="Expand panel"
+              title="Expand"
+              className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-400 hover:bg-zinc-100 dark:hover:bg-[#2a2a2a] hover:text-zinc-600 dark:hover:text-zinc-200 cursor-pointer"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
         <div className={`mx-3 h-px bg-zinc-200 dark:bg-[#333333] ${open ? '' : 'mx-2'}`} />
 
@@ -146,7 +163,7 @@ export const AppShell: React.FC<AppShellProps> = ({
         {/* Utilities + profile, pinned to the bottom */}
         <div className="mt-auto">
           <div className={`mx-3 h-px bg-zinc-200 dark:bg-[#333333] ${open ? '' : 'mx-2'}`} />
-          <div className={`flex items-center gap-1 py-2 ${open ? 'px-2' : 'flex-col items-center px-0'}`}>
+          <div className={`flex items-center gap-1 py-2 ${open ? 'px-3' : 'flex-col items-center px-0'}`}>
             <button
               type="button"
               title="Notifications"
@@ -172,31 +189,36 @@ export const AppShell: React.FC<AppShellProps> = ({
             >
               <Settings className="w-[18px] h-[18px]" />
             </button>
-            {profile && <div className={open ? 'ml-auto' : ''}>{profile}</div>}
           </div>
-          {open && dock && dock.length > 0 && (
-            <div className="px-3 pb-2">
-              <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-zinc-400">Apps</p>
-              <div className="grid grid-cols-4 gap-1.5">
-                {dock.map((item) => (
-                  <button
-                    key={`dock-${item.id}`}
-                    type="button"
-                    title={item.label}
-                    aria-label={`Open ${item.label}`}
-                    onClick={() => {
-                      openPane(item);
-                      if (mobile) setMobileNav(false);
-                    }}
-                    className="h-10 rounded-xl flex items-center justify-center hover:bg-zinc-100 dark:hover:bg-[#2a2a2a] cursor-pointer"
-                  >
-                    <AppGlyph item={item} className="w-5 h-5" />
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-          {panelFooter && open && <div className="px-3 pb-3 text-[11px] text-zinc-500 dark:text-zinc-500 leading-relaxed">{panelFooter}</div>}
+
+          <div className={`mx-3 h-px bg-zinc-200 dark:bg-[#333333] ${open ? '' : 'mx-2'}`} />
+
+          <button
+            type="button"
+            onClick={onProfileClick}
+            title={profileName ?? 'Account'}
+            aria-label="Account"
+            className={`w-full flex items-center gap-2.5 py-3 cursor-pointer hover:bg-zinc-50 dark:hover:bg-[#2a2a2a] ${
+              open ? 'px-3' : 'justify-center px-0'
+            }`}
+          >
+            <span className="w-9 h-9 rounded-full overflow-hidden shrink-0 bg-[#0494f4] text-white flex items-center justify-center text-xs font-bold">
+              {profileAvatar ? (
+                <img src={profileAvatar} alt="" className="w-full h-full object-cover" />
+              ) : (
+                (profileName || '?').slice(0, 1).toUpperCase()
+              )}
+            </span>
+            {open && (
+              <span className="min-w-0 text-left">
+                <span className="block text-[13px] font-semibold text-zinc-900 dark:text-zinc-100 truncate">
+                  {profileName || 'Sign in'}
+                </span>
+                <span className="block text-[11px] text-zinc-500 truncate">{profileEmail || 'with Bansify'}</span>
+              </span>
+            )}
+          </button>
+          {panelFooter && open && <div className="px-3 pb-3 text-[11px] text-zinc-500 leading-relaxed">{panelFooter}</div>}
         </div>
       </div>
     );
@@ -215,16 +237,15 @@ export const AppShell: React.FC<AppShellProps> = ({
 
       {/* Middle column: header + canvas + panes */}
       <div className="flex flex-col flex-1 min-w-0">
-        <header className="flex items-center gap-2 px-3 sm:px-5 h-14 shrink-0 border-b border-zinc-200 dark:border-[#333333]">
+        <header className="md:hidden flex items-center gap-2 px-3 h-12 shrink-0 border-b border-zinc-200 dark:border-[#333333]">
           <button
             type="button"
             onClick={() => setMobileNav(true)}
             aria-label="Open navigation"
-            className="md:hidden w-8 h-8 rounded-lg flex items-center justify-center text-zinc-500 hover:bg-zinc-100 dark:hover:bg-[#2a2a2a] cursor-pointer"
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-500 hover:bg-zinc-100 dark:hover:bg-[#2a2a2a] cursor-pointer"
           >
             <Menu className="w-5 h-5" />
           </button>
-          <div className="flex-1 min-w-0">{headerAction}</div>
         </header>
 
         <div className="flex flex-1 min-h-0">
@@ -319,7 +340,19 @@ export const AppShell: React.FC<AppShellProps> = ({
       {/* Right dock: full height, profile at the top like the panel has it at the bottom */}
       {dock && dock.length > 0 && (
         <aside className="hidden lg:flex w-14 shrink-0 flex-col items-center gap-1 border-l border-zinc-200 dark:border-[#333333] py-3">
-          {profile && <div className="mb-1">{profile}</div>}
+          <button
+            type="button"
+            onClick={onProfileClick}
+            title={profileName ?? 'Account'}
+            aria-label="Account"
+            className="mb-1 w-9 h-9 rounded-full overflow-hidden bg-[#0494f4] text-white flex items-center justify-center text-xs font-bold cursor-pointer"
+          >
+            {profileAvatar ? (
+              <img src={profileAvatar} alt="" className="w-full h-full object-cover" />
+            ) : (
+              (profileName || '?').slice(0, 1).toUpperCase()
+            )}
+          </button>
           <div className="w-6 h-px bg-zinc-200 dark:bg-[#333333] mb-1" />
           {dock.map((item, index) => {
             const active = panes.some((p) => p.id === item.id);
