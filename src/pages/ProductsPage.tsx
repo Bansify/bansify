@@ -1,45 +1,87 @@
-import React from 'react';
-import { Compass, MessageSquare, Send, ArrowRight, ExternalLink } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowUpRight, Download } from 'lucide-react';
 import { Breadcrumbs } from '../components/Breadcrumbs';
+import { PUBLIC_APPS, appHref } from '../data/apps';
+import type { AppEntry } from '../data/apps';
 
-const PRODUCTS = [
-  { id: 'browser', name: 'Bansify Browser', desc: '11.8 MB • 75% less RAM • TurboShield', icon: Compass, color: 'text-[#0494f4]', href: 'https://browser.bansify.com', play: 'https://play.google.com/store/apps/details?id=com.gothwad.browser' },
-  { id: 'grixchat', name: 'GrixChat', desc: '<15ms • 2GB files • HD calling', icon: MessageSquare, color: 'text-emerald-600', href: 'https://grixchat.bansify.com', play: 'https://play.google.com/store/apps/details?id=com.gothwad.grixchat' },
-  { id: 'indogram', name: 'Indogram', desc: '200k members • unlimited cloud', icon: Send, color: 'text-sky-600', href: 'https://indogram.bansify.com', play: 'https://play.google.com/store/apps/details?id=com.gothwad.indogram' },
-];
-
-export const ProductsPage: React.FC = () => {
+const Logo: React.FC<{ app: AppEntry }> = ({ app }) => {
+  const [failed, setFailed] = useState(false);
+  const Icon = app.icon;
+  if (app.logoSrc && !failed) {
+    return (
+      <img
+        src={app.logoSrc}
+        alt=""
+        width={40}
+        height={40}
+        loading="lazy"
+        onError={() => setFailed(true)}
+        className="w-10 h-10 rounded-xl object-contain bg-white ring-1 ring-zinc-200 dark:ring-zinc-800"
+      />
+    );
+  }
   return (
-    <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-6 sm:py-8">
-      <Breadcrumbs items={[{ name: 'Products', path: '/products' }]} />
-      <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">Sovereign apps</h1>
-      <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">Three flagships — open on any device.</p>
+    <div className={`w-10 h-10 rounded-xl ${app.accent} flex items-center justify-center`}>
+      <Icon className="w-5 h-5 text-white" />
+    </div>
+  );
+};
 
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-        {PRODUCTS.map((p) => {
-          const Icon = p.icon;
-          return (
-            <div key={p.id} className="p-5 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors">
-              <div className={`w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center ${p.color}`}>
-                <Icon className="w-5 h-5" />
-              </div>
-              <h3 className="text-sm font-bold text-zinc-900 dark:text-white mt-3">{p.name}</h3>
-              <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">{p.desc}</p>
-              <div className="mt-3 flex flex-col gap-2">
-                <a href={p.href} target="_blank" rel="noreferrer" className="flex items-center justify-between px-3 py-2 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-xs font-medium hover:border-[#0494f4]/40">
-                  <span>Open</span> <ExternalLink className="w-3 h-3" />
-                </a>
-                <a href={p.play} target="_blank" rel="noreferrer" className="text-xs text-zinc-500 hover:text-[#0494f4] hover:underline">Play Store →</a>
+/**
+ * Products is the same catalogue as the home page — one source of truth in
+ * `data/apps.ts`, so no page can drift or advertise numbers we cannot back.
+ */
+export const ProductsPage: React.FC = () => {
+  const web = PUBLIC_APPS.filter((a) => a.platform === 'web');
+  const android = PUBLIC_APPS.filter((a) => a.platform === 'android');
+
+  const render = (apps: AppEntry[]) => (
+    <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+      {apps.map((app) => {
+        const href = appHref(app);
+        const isAndroid = app.platform === 'android';
+        return (
+          <a
+            key={`${app.platform}-${app.id}`}
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 hover:border-[#0494f4]/40 hover:shadow-sm transition"
+          >
+            <div className="flex items-start gap-3">
+              <Logo app={app} />
+              <div className="min-w-0">
+                <h3 className="text-sm font-semibold text-zinc-900 dark:text-white truncate">{app.name}</h3>
+                <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400 line-clamp-2">{app.summary}</p>
               </div>
             </div>
-          );
-        })}
-      </div>
+            <div className="mt-3 flex items-center gap-2 text-xs font-semibold text-[#0494f4]">
+              {isAndroid ? <Download className="w-3.5 h-3.5" /> : <ArrowUpRight className="w-3.5 h-3.5" />}
+              {isAndroid ? 'Download APK' : 'Open'}
+            </div>
+          </a>
+        );
+      })}
+    </div>
+  );
 
-      <div className="mt-8 p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
-        <span className="text-xs text-zinc-600 dark:text-zinc-400">Want all products? Try the ecosystem hub.</span>
-        <a href="/ecosystem" className="text-xs font-semibold text-[#0494f4] hover:underline inline-flex items-center gap-1">Ecosystem <ArrowRight className="w-3 h-3" /></a>
-      </div>
+  return (
+    <div className="max-w-[1100px] mx-auto">
+      <Breadcrumbs items={[{ name: 'Products', path: '/products' }]} />
+      <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">Products</h1>
+      <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+        Every Bansify app, web and Android, on one account.
+      </p>
+
+      <section className="mt-7">
+        <h2 className="text-sm font-semibold text-zinc-900 dark:text-white">Web · {web.length}</h2>
+        {render(web)}
+      </section>
+
+      <section className="mt-8">
+        <h2 className="text-sm font-semibold text-zinc-900 dark:text-white">Android · {android.length}</h2>
+        {render(android)}
+      </section>
     </div>
   );
 };
