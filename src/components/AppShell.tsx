@@ -15,14 +15,14 @@ import { useTheme } from '../context/ThemeContext';
 export interface ShellNavItem {
   id: string;
   label: string;
-  icon?: React.ComponentType<{ className?: string }>;
+  icon?: React.ComponentType<{ className?: string; strokeWidth?: number }>;
   badge?: string;
 }
 
 export interface RailItem {
   id: string;
   label: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
   url?: string;
   logoSrc?: string;
 }
@@ -49,7 +49,7 @@ const AppGlyph: React.FC<{ item: RailItem; className?: string }> = ({ item, clas
   if (item.logoSrc && !failed) {
     return <img src={item.logoSrc} alt="" loading="lazy" onError={() => setFailed(true)} className={`${className} rounded-md object-contain`} />;
   }
-  return <Icon className={`${className} text-zinc-500`} />;
+  return <Icon className={`${className} text-zinc-500`} strokeWidth={1.75} />;
 };
 
 /**
@@ -148,7 +148,7 @@ export const AppShell: React.FC<AppShellProps> = ({
                 }`}
               >
                 {active && <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-[#0494f4]" />}
-                {Icon && <Icon className={`${open ? 'w-[18px] h-[18px]' : 'w-[22px] h-[22px]'} shrink-0`} />}
+                {Icon && <Icon className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />}
                 {open && <span className="truncate">{item.label}</span>}
                 {open && item.badge && (
                   <span className="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-zinc-100 dark:bg-[#2a2a2a] text-zinc-500 dark:text-zinc-400">
@@ -170,7 +170,7 @@ export const AppShell: React.FC<AppShellProps> = ({
               aria-label="Notifications"
               className="w-9 h-9 rounded-xl flex items-center justify-center text-zinc-500 hover:bg-zinc-100 dark:hover:bg-[#2a2a2a] hover:text-zinc-800 dark:hover:text-zinc-200 cursor-pointer"
             >
-              <Bell className="w-[18px] h-[18px]" />
+              <Bell className="w-[18px] h-[18px]" strokeWidth={1.75} />
             </button>
             <button
               type="button"
@@ -179,7 +179,7 @@ export const AppShell: React.FC<AppShellProps> = ({
               aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
               className="w-9 h-9 rounded-xl flex items-center justify-center text-zinc-500 hover:bg-zinc-100 dark:hover:bg-[#2a2a2a] hover:text-zinc-800 dark:hover:text-zinc-200 cursor-pointer"
             >
-              {isDark ? <Sun className="w-[18px] h-[18px]" /> : <Moon className="w-[18px] h-[18px]" />}
+              {isDark ? <Sun className="w-[18px] h-[18px]" strokeWidth={1.75} /> : <Moon className="w-[18px] h-[18px]" strokeWidth={1.75} />}
             </button>
             <button
               type="button"
@@ -187,7 +187,7 @@ export const AppShell: React.FC<AppShellProps> = ({
               aria-label="Settings"
               className="w-9 h-9 rounded-xl flex items-center justify-center text-zinc-500 hover:bg-zinc-100 dark:hover:bg-[#2a2a2a] hover:text-zinc-800 dark:hover:text-zinc-200 cursor-pointer"
             >
-              <Settings className="w-[18px] h-[18px]" />
+              <Settings className="w-[18px] h-[18px]" strokeWidth={1.75} />
             </button>
           </div>
 

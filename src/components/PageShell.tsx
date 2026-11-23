@@ -5,6 +5,7 @@ import { useGothwadSession } from '../hooks/useGothwadSession';
 import { openGothwadAccountMenu } from '../lib/accountMenuWidget';
 import { ACCOUNTS_WEB_ORIGIN } from '../config/brand';
 import { APP_DOCK } from '../data/dock';
+import { SITE_NAV } from '../data/nav';
 
 
 export const PageShell: React.FC<{
@@ -35,16 +36,16 @@ export const PageShell: React.FC<{
     <AppShell
       brandName="Bansify"
       brandLogoSrc="/assets/brand/logo.png"
-      navItems={[
-        { id: 'home', label: 'All apps', icon: LayoutGrid },
-        { id: 'products', label: 'Products', icon: Boxes },
-        { id: 'docs', label: 'Docs', icon: BookOpen },
-        { id: 'company', label: 'Company', icon: Building2 },
-        { id: 'contact', label: 'Contact', icon: Mail },
-        { id: 'account', label: 'Account centre', icon: Settings },
-      ]}
+      navItems={SITE_NAV}
       activeNav={activePage}
-      onNavSelect={(id) => (id === 'account' ? openAccountCentre() : onNavigate(id))}
+      onNavSelect={(id) => {
+        if (id === 'account') return openAccountCentre();
+        // list filters always live on the home page
+        if (id === 'all' || id === 'web' || id === 'android' || id === 'featured' || id === 'home') {
+          return onNavigate('home');
+        }
+        onNavigate(id);
+      }}
       panelFooter={
         <div className="text-[11px] text-zinc-500 dark:text-zinc-500 leading-relaxed">
           {signedIn && account ? (
