@@ -39,7 +39,8 @@ export const PageShell: React.FC<{
 
   return (
     <AppShell
-      panelTitle="Bansify"
+      brandName="Bansify"
+      brandLogoSrc="/assets/brand/logo.png"
       navItems={[
         { id: 'home', label: 'All apps', icon: LayoutGrid },
         { id: 'products', label: 'Products', icon: Boxes },

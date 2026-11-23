@@ -156,7 +156,8 @@ export const HomePage: React.FC<{ onNavigate: (p: string) => void }> = ({ onNavi
 
   return (
     <AppShell
-      panelTitle="Bansify"
+      brandName="Bansify"
+      brandLogoSrc="/assets/brand/logo.png"
       navItems={[
         { id: 'all', label: 'All apps', icon: LayoutGrid, badge: String(PUBLIC_APPS.length) },
         { id: 'web', label: 'Website', icon: Globe, badge: String(PUBLIC_APPS.filter((a) => a.platform === 'web').length) },
