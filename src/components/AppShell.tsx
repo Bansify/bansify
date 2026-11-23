@@ -8,7 +8,9 @@ import {
   Settings,
   PanelLeft,
   Bell,
-  Sparkles,
+  X,
+  ArrowUpRight,
+  Smartphone,
 } from 'lucide-react';
 
 export interface ShellNavItem {
@@ -18,33 +20,40 @@ export interface ShellNavItem {
   badge?: string;
 }
 
+export interface RailItem {
+  id: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  url?: string;
+  logoSrc?: string;
+}
+
 interface AppShellProps {
-  /** Left rail shortcuts (the thin strip of icons). */
-  rail?: Array<{ id: string; label: string; icon: React.ComponentType<{ className?: string }> }>;
+  rail?: RailItem[];
   activeRail?: string;
   onRailSelect?: (id: string) => void;
-  /** Sidebar header, e.g. "Bansify". */
+  /** Right-hand app dock (Accounts, Mail, Drive, …) with in-page previews. */
+  rightRail?: RailItem[];
   sidebarTitle: string;
   navItems: ShellNavItem[];
   activeNav: string;
   onNavSelect: (id: string) => void;
-  /** Optional secondary list under the nav (recent items, quick links). */
   sidebarFooter?: React.ReactNode;
-  /** Right-hand side of the content header. */
   headerAction?: React.ReactNode;
-  /** Account chip rendered at the bottom of the rail. */
   accountSlot?: React.ReactNode;
   children: React.ReactNode;
 }
 
 /**
- * Productive shell: a thin icon rail, a section sidebar and a card canvas —
- * the layout used across Bansify web apps.
+ * Productive shell: icon rail, section sidebar, card canvas and an optional app
+ * dock on the right that previews a product in a phone-sized frame without
+ * leaving the site.
  */
 export const AppShell: React.FC<AppShellProps> = ({
   rail,
   activeRail = 'home',
   onRailSelect,
+  rightRail,
   sidebarTitle,
   navItems,
   activeNav,
@@ -55,6 +64,7 @@ export const AppShell: React.FC<AppShellProps> = ({
   children,
 }) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [preview, setPreview] = useState<RailItem | null>(null);
 
   return (
     <div className="flex h-[100dvh] w-full overflow-hidden bg-white dark:bg-zinc-950">
@@ -70,9 +80,7 @@ export const AppShell: React.FC<AppShellProps> = ({
               title={item.label}
               onClick={() => onRailSelect?.(item.id)}
               className={`w-10 h-10 rounded-xl flex items-center justify-center transition cursor-pointer ${
-                active
-                  ? 'bg-[#0494f4]/10 text-[#0494f4]'
-                  : 'text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-900'
+                active ? 'bg-[#0494f4]/10 text-[#0494f4]' : 'text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-900'
               }`}
             >
               <Icon className="w-5 h-5" />
@@ -92,7 +100,7 @@ export const AppShell: React.FC<AppShellProps> = ({
         </div>
       </aside>
 
-      {/* Section sidebar */}
+      {/* Section sidebar — collapsible, never unreachable */}
       {sidebarOpen && (
         <aside className="hidden md:flex w-60 shrink-0 flex-col border-r border-zinc-200 dark:border-zinc-800">
           <div className="flex items-center justify-between px-4 h-12 shrink-0">
@@ -139,19 +147,97 @@ export const AppShell: React.FC<AppShellProps> = ({
       )}
 
       {/* Canvas */}
-      <main className="flex-1 min-w-0 overflow-y-auto">
-        {headerAction && (
-          <div className="sticky top-0 z-10 flex items-center justify-end gap-2 px-4 sm:px-6 py-2.5 bg-white/90 dark:bg-zinc-950/90 backdrop-blur border-b border-zinc-100 dark:border-zinc-900">
-            {headerAction}
-          </div>
-        )}
-        <div className="px-4 sm:px-6 py-5">{children}</div>
+      <main className="flex-1 min-w-0 flex flex-col overflow-hidden">
+        <div className="flex items-center gap-2 px-3 sm:px-6 py-2.5 border-b border-zinc-100 dark:border-zinc-900 shrink-0">
+          {!sidebarOpen && (
+            <button
+              type="button"
+              onClick={() => setSidebarOpen(true)}
+              title="Show sidebar"
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-900 cursor-pointer"
+            >
+              <PanelLeft className="w-4 h-4" />
+            </button>
+          )}
+          <div className="flex-1 min-w-0">{headerAction}</div>
+        </div>
+        <div className="flex-1 min-h-0 overflow-y-auto px-3 sm:px-6 py-5">{children}</div>
       </main>
+
+      {/* App dock */}
+      {rightRail && rightRail.length > 0 && (
+        <aside className="hidden lg:flex w-14 shrink-0 flex-col items-center gap-1 border-l border-zinc-200 dark:border-zinc-800 py-3">
+          {rightRail.map((item) => {
+            const Icon = item.icon;
+            const active = preview?.id === item.id;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                title={item.label}
+                onClick={() => setPreview(active ? null : item)}
+                className={`relative w-10 h-10 rounded-xl flex items-center justify-center transition cursor-pointer ${
+                  active ? 'bg-[#0494f4]/10 ring-1 ring-[#0494f4]/30' : 'hover:bg-zinc-100 dark:hover:bg-zinc-900'
+                }`}
+              >
+                {item.logoSrc ? (
+                  <img src={item.logoSrc} alt="" className="w-6 h-6 rounded-md object-contain" />
+                ) : (
+                  <Icon className="w-5 h-5 text-zinc-500" />
+                )}
+              </button>
+            );
+          })}
+        </aside>
+      )}
+
+      {/* Phone-frame preview — the app opens inside the site, no redirect */}
+      {preview && (
+        <div className="fixed inset-0 z-50 flex items-stretch justify-end bg-black/30 backdrop-blur-[2px]" onClick={() => setPreview(null)}>
+          <div
+            className="relative m-3 sm:m-4 w-full max-w-[430px] rounded-[28px] bg-white dark:bg-zinc-950 shadow-2xl ring-1 ring-zinc-300 dark:ring-zinc-700 overflow-hidden flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-2 px-4 h-12 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
+              <Smartphone className="w-4 h-4 text-zinc-400" />
+              <span className="text-sm font-semibold text-zinc-900 dark:text-white truncate">{preview.label}</span>
+              {preview.url && (
+                <a
+                  href={preview.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="ml-auto inline-flex items-center gap-1 text-[11px] text-[#0494f4] hover:underline"
+                >
+                  Open in tab <ArrowUpRight className="w-3 h-3" />
+                </a>
+              )}
+              <button
+                type="button"
+                onClick={() => setPreview(null)}
+                className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            {preview.url ? (
+              <iframe
+                src={preview.url}
+                title={preview.label}
+                className="flex-1 w-full border-0 bg-white"
+                referrerPolicy="strict-origin-when-cross-origin"
+                allow="clipboard-write; camera; microphone; fullscreen"
+              />
+            ) : (
+              <div className="flex-1 flex items-center justify-center text-sm text-zinc-500">No preview available</div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-export const RAIL_ITEMS = [
+export const RAIL_ITEMS: RailItem[] = [
   { id: 'home', label: 'Home', icon: Home },
   { id: 'apps', label: 'All apps', icon: LayoutGrid },
   { id: 'products', label: 'Products', icon: Boxes },
@@ -159,5 +245,3 @@ export const RAIL_ITEMS = [
   { id: 'company', label: 'Company', icon: Building2 },
   { id: 'settings', label: 'Settings', icon: Settings },
 ];
-
-export const Sparkle = Sparkles;
