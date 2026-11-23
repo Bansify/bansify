@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Search, ArrowUpRight, Download, Globe, Smartphone, LayoutGrid, Star, Settings, PenLine, Video, Upload, ChevronDown, CheckCircle2 } from 'lucide-react';
+import { Search, ArrowUpRight, Download, Globe, Smartphone, LayoutGrid, Star, Settings, ChevronDown, Fingerprint, Mail, HardDrive, Video, ShoppingBag, Bot, GitBranch } from 'lucide-react';
 import { AppShell, RAIL_ITEMS } from '../components/AppShell';
 import { PUBLIC_APPS, appHref } from '../data/apps';
 import type { AppEntry } from '../data/apps';
@@ -155,6 +155,15 @@ export const HomePage: React.FC<{ onNavigate: (p: string) => void }> = ({ onNavi
         if (id === 'company') onNavigate('company');
         if (id === 'settings') onNavigate('settings');
       }}
+      rightRail={[
+        { id: 'accounts', label: 'Bansify Accounts', icon: Fingerprint, url: 'https://accounts.bansify.com', logoSrc: 'https://accounts.bansify.com/icon-192.png' },
+        { id: 'mail', label: 'Bansify Mail', icon: Mail, url: 'https://mail.bansify.com', logoSrc: 'https://mail.bansify.com/icon-192.png' },
+        { id: 'drive', label: 'Bansify Drive', icon: HardDrive, url: 'https://drive.bansify.com', logoSrc: 'https://drive.bansify.com/icon-192.png' },
+        { id: 'meet', label: 'Bansify Meet', icon: Video, url: 'https://meet.bansify.com', logoSrc: 'https://meet.bansify.com/icon-192.png' },
+        { id: 'pay', label: 'Bansify Pay', icon: ShoppingBag, url: 'https://pay.bansify.com', logoSrc: 'https://pay.bansify.com/icon-192.png' },
+        { id: 'ai', label: 'Bansify AI', icon: Bot, url: 'https://ai.bansify.com', logoSrc: 'https://ai.bansify.com/icon-192.png' },
+        { id: 'gitplus', label: 'GitPlus', icon: GitBranch, url: 'https://gitplus.bansify.com', logoSrc: 'https://gitplus.bansify.com/icon-192.png' },
+      ]}
       sidebarTitle="Bansify"
       navItems={[
         { id: 'all', label: 'All apps', icon: LayoutGrid, badge: String(PUBLIC_APPS.length) },
@@ -207,38 +216,6 @@ export const HomePage: React.FC<{ onNavigate: (p: string) => void }> = ({ onNavi
               ⌘K
             </kbd>
           </div>
-
-          {/* Quick actions — the space to the right of search now does something */}
-          <div className="hidden lg:flex items-center gap-1.5 ml-1">
-            <a
-              href="https://mail.bansify.com/?compose=1"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 h-9 px-3 rounded-full border border-zinc-200 dark:border-zinc-800 text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:border-[#0494f4]/40 hover:text-[#0494f4] transition"
-            >
-              <PenLine className="w-3.5 h-3.5" /> Compose
-            </a>
-            <a
-              href="https://meet.bansify.com/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 h-9 px-3 rounded-full border border-zinc-200 dark:border-zinc-800 text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:border-[#0494f4]/40 hover:text-[#0494f4] transition"
-            >
-              <Video className="w-3.5 h-3.5" /> New meeting
-            </a>
-            <a
-              href="https://drive.bansify.com/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 h-9 px-3 rounded-full border border-zinc-200 dark:border-zinc-800 text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:border-[#0494f4]/40 hover:text-[#0494f4] transition"
-            >
-              <Upload className="w-3.5 h-3.5" /> Upload
-            </a>
-          </div>
-
-          <span className="hidden xl:inline-flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 ml-1">
-            <CheckCircle2 className="w-3.5 h-3.5" /> All apps online
-          </span>
 
           {/* Profile sits beside search — no redirect button */}
           <button
