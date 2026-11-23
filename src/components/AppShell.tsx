@@ -157,7 +157,7 @@ export const AppShell: React.FC<AppShellProps> = ({
   );
 
   return (
-    <div className="flex h-[100dvh] w-full overflow-hidden bg-white dark:bg-zinc-950">
+    <div className="flex h-screen supports-[height:100dvh]:h-[100dvh] w-full overflow-hidden bg-white dark:bg-zinc-950">
       {/* Single left panel: navigation and sections together, collapsible to icons */}
       <aside
         className={`hidden md:flex shrink-0 flex-col border-r border-zinc-200 dark:border-zinc-800 transition-[width] duration-200 ${
