@@ -1,145 +1,265 @@
-import React, { useState } from 'react';
-import { Search, ArrowUpRight, Grid2X2, Github, BookOpen } from 'lucide-react';
-import { Logo } from '../components/Logo';
-import { PUBLIC_APPS } from '../data/apps';
-import { AppRow } from '../components/AppRow';
+import React, { useMemo, useState } from 'react';
+import { Search, ArrowUpRight, Download, Globe, Smartphone, LayoutGrid, Star, Settings } from 'lucide-react';
+import { AppShell, RAIL_ITEMS } from '../components/AppShell';
+import { PUBLIC_APPS, appHref } from '../data/apps';
+import type { AppEntry } from '../data/apps';
+import { useGothwadSession } from '../hooks/useGothwadSession';
+import { ACCOUNTS_WEB_ORIGIN } from '../config/brand';
 
-type PlatformFilter = 'all' | 'web' | 'android';
+type Filter = 'all' | 'web' | 'android';
+
+const AppLogo: React.FC<{ app: AppEntry; size?: number }> = ({ app, size = 40 }) => {
+  const [failed, setFailed] = useState(false);
+  const Icon = app.icon;
+  const px = { width: size, height: size };
+  if (app.logoSrc && !failed) {
+    return (
+      <img
+        src={app.logoSrc}
+        alt={`${app.name} logo`}
+        style={px}
+        loading="lazy"
+        onError={() => setFailed(true)}
+        className="rounded-xl object-contain bg-white ring-1 ring-zinc-200 dark:ring-zinc-800 shrink-0"
+      />
+    );
+  }
+  return (
+    <div style={px} className={`rounded-xl ${app.accent} flex items-center justify-center shrink-0`}>
+      <Icon className="w-5 h-5 text-white" />
+    </div>
+  );
+};
+
+const AppCard: React.FC<{ app: AppEntry }> = ({ app }) => {
+  const href = appHref(app);
+  const isAndroid = app.platform === 'android';
+  return (
+    <div className="group rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 hover:border-[#0494f4]/40 hover:shadow-sm transition">
+      <div className="flex items-start gap-3">
+        <AppLogo app={app} />
+        <div className="min-w-0 flex-1">
+          <h3 className="text-sm font-semibold text-zinc-900 dark:text-white truncate">{app.name}</h3>
+          <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400 line-clamp-2">{app.summary}</p>
+        </div>
+        {href && (
+          <a
+            href={href}
+            title={isAndroid ? 'Download APK' : 'Open'}
+            className="shrink-0 w-8 h-8 rounded-full border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-zinc-500 hover:bg-[#0494f4] hover:text-white hover:border-[#0494f4] transition"
+            {...(isAndroid ? { download: '' } : { rel: 'noopener' })}
+          >
+            {isAndroid ? <Download className="w-4 h-4" /> : <ArrowUpRight className="w-4 h-4" />}
+          </a>
+        )}
+      </div>
+      <div className="mt-3 flex items-center gap-2">
+        <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400">
+          {isAndroid ? 'Android' : 'Web'}
+        </span>
+        {app.badge && (
+          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#0494f4]/10 text-[#0494f4]">
+            {app.badge}
+          </span>
+        )}
+        {href && (
+          <a
+            href={href}
+            className="ml-auto text-xs font-semibold text-[#0494f4] hover:underline"
+            {...(isAndroid ? { download: '' } : { rel: 'noopener' })}
+          >
+            {isAndroid ? 'Download' : 'Open'}
+          </a>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const Section: React.FC<{ title: string; count: number; children: React.ReactNode }> = ({ title, count, children }) => (
+  <section className="mt-7">
+    <div className="flex items-center gap-2 mb-3">
+      <h2 className="text-sm font-semibold text-zinc-900 dark:text-white">{title}</h2>
+      <span className="text-xs text-zinc-400">{count}</span>
+    </div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">{children}</div>
+  </section>
+);
 
 export const HomePage: React.FC<{ onNavigate: (p: string) => void }> = ({ onNavigate }) => {
+  const [filter, setFilter] = useState<Filter>('all');
   const [q, setQ] = useState('');
-  const [platform, setPlatform] = useState<PlatformFilter>('all');
+  const [rail, setRail] = useState('apps');
+  const session = useGothwadSession();
 
-  const filtered = PUBLIC_APPS.filter((app) => {
-    if (platform !== 'all' && app.platform !== platform) return false;
-    if (!q.trim()) return true;
-    const s = q.toLowerCase();
-    return (
-      app.name.toLowerCase().includes(s) ||
-      app.summary.toLowerCase().includes(s) ||
-      app.platform.includes(s)
-    );
-  });
+  const filtered = useMemo(() => {
+    const term = q.trim().toLowerCase();
+    return PUBLIC_APPS.filter((app) => {
+      if (filter !== 'all' && app.platform !== filter) return false;
+      if (!term) return true;
+      return app.name.toLowerCase().includes(term) || app.summary.toLowerCase().includes(term);
+    });
+  }, [filter, q]);
+
+  const webApps = filtered.filter((a) => a.platform === 'web');
+  const androidApps = filtered.filter((a) => a.platform === 'android');
+  const featured = PUBLIC_APPS.filter((a) => a.platform === 'web').slice(0, 3);
+
+  const account = session.data?.user;
+  const signedIn = session.authenticated;
+
+  const railItems = RAIL_ITEMS.map((item) =>
+    item.id === 'home' ? { ...item, id: 'apps' } : item,
+  );
 
   return (
-    <div className="min-h-[calc(100vh-7rem)] flex flex-col items-center">
-      {/* Google-like centered hero */}
-      <div className="w-full max-w-[980px] mx-auto px-4 sm:px-6 flex flex-col items-center pt-12 sm:pt-16 pb-6">
-        {/* Big logo — like Google doodle */}
-        <div className="flex flex-col items-center gap-3">
-          <Logo size="xl" imageSrc="/assets/brand/logo.png" className="scale-[1.08]" />
-          <h1 className="sr-only">Bansify — Official Website</h1>
-          <p className="text-[14px] sm:text-[15px] text-zinc-600 dark:text-zinc-400 text-center tracking-tight">
-            Everything Bansify, in one place.
-          </p>
+    <AppShell
+      rail={railItems}
+      activeRail={rail}
+      onRailSelect={(id) => {
+        setRail(id);
+        if (id === 'products') onNavigate('products');
+        if (id === 'docs') onNavigate('docs');
+        if (id === 'company') onNavigate('company');
+        if (id === 'settings') onNavigate('settings');
+      }}
+      sidebarTitle="Bansify"
+      navItems={[
+        { id: 'all', label: 'All apps', icon: LayoutGrid, badge: String(PUBLIC_APPS.length) },
+        { id: 'web', label: 'Website', icon: Globe, badge: String(PUBLIC_APPS.filter((a) => a.platform === 'web').length) },
+        { id: 'android', label: 'Android', icon: Smartphone, badge: String(PUBLIC_APPS.filter((a) => a.platform === 'android').length) },
+        { id: 'featured', label: 'Featured', icon: Star },
+        { id: 'account', label: 'Account centre', icon: Settings },
+      ]}
+      activeNav={filter}
+      onNavSelect={(id) => {
+        if (id === 'account') {
+          window.location.href = ACCOUNTS_WEB_ORIGIN;
+          return;
+        }
+        if (id === 'featured') {
+          setFilter('all');
+          return;
+        }
+        setFilter(id as Filter);
+      }}
+      sidebarFooter={
+        <div className="text-[11px] text-zinc-500 dark:text-zinc-500 leading-relaxed">
+          {signedIn && account ? (
+            <>
+              Signed in as <span className="font-semibold text-zinc-700 dark:text-zinc-300">{account.name || account.username}</span>
+            </>
+          ) : (
+            <>
+              <a href={ACCOUNTS_WEB_ORIGIN} className="text-[#0494f4] hover:underline font-medium">
+                Sign in with Bansify
+              </a>{' '}
+              to sync across apps
+            </>
+          )}
         </div>
-
-        {/* Search bar — Google rounded-full */}
-        <div className="w-full max-w-[560px] mt-6 relative group">
-          <div className="flex items-center gap-3 w-full h-11 sm:h-12 px-4 rounded-full border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm group-focus-within:shadow-md group-hover:shadow-md group-focus-within:border-[#0494f4]/30 transition-all">
-            <Search className="w-5 h-5 text-zinc-400 shrink-0" />
+      }
+      headerAction={
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 h-9 px-3 rounded-full border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
+            <Search className="w-4 h-4 text-zinc-400" />
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Search products — try Mail, Drive, Browser..."
-              className="flex-1 h-full bg-transparent outline-none text-sm text-zinc-900 dark:text-white placeholder:text-zinc-400"
-              autoFocus
+              placeholder="Search apps"
+              className="w-32 sm:w-56 bg-transparent outline-none text-sm text-zinc-900 dark:text-white placeholder:text-zinc-400"
             />
-            {q && (
-              <button
-                onClick={() => setQ('')}
-                className="text-xs text-zinc-500 hover:text-zinc-900 dark:hover:text-white px-2 cursor-pointer"
-              >
-                Clear
-              </button>
-            )}
           </div>
-          <div className="flex items-center justify-center gap-2 mt-3">
-            <button
-              onClick={() => setQ('')}
-              className="px-4 py-1.5 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 text-xs font-medium border border-zinc-200 dark:border-zinc-700 cursor-pointer"
-            >
-              I’m feeling lucky
-            </button>
-            <button
-              onClick={() => onNavigate('ecosystem')}
-              className="px-4 py-1.5 rounded-full bg-[#0494f4] hover:bg-[#0077cd] text-white text-xs font-medium cursor-pointer"
-            >
-              Browse ecosystem
-            </button>
-          </div>
+          <a
+            href={ACCOUNTS_WEB_ORIGIN}
+            className="hidden sm:inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full bg-[#0494f4] hover:bg-[#0384db] text-white text-xs font-semibold"
+          >
+            {signedIn ? 'Account' : 'Sign in'}
+            <ArrowUpRight className="w-3.5 h-3.5" />
+          </a>
         </div>
-
-        {/* Product grid — like Google apps / Chrome shortcuts */}
-        <div className="w-full mt-8">
-          <div className="flex items-center justify-center gap-2 mb-3">
-            <span className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500 dark:text-zinc-500">
-              All Bansify apps
-            </span>
-            <span className="h-px flex-1 max-w-24 bg-zinc-200 dark:bg-zinc-800" />
-          </div>
-
-          <div className="flex items-center justify-center gap-2 flex-wrap mb-4">
-            {([
-              { id: 'all' as const, label: 'All', count: PUBLIC_APPS.length },
-              { id: 'web' as const, label: 'Website', count: PUBLIC_APPS.filter((a) => a.platform === 'web').length },
-              { id: 'android' as const, label: 'Android', count: PUBLIC_APPS.filter((a) => a.platform === 'android').length },
-            ]).map((f) => (
-              <button
-                key={f.id}
-                type="button"
-                onClick={() => setPlatform(f.id)}
-                className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold border transition cursor-pointer ${
-                  platform === f.id
-                    ? 'bg-[#0494f4] text-white border-[#0494f4]'
-                    : 'bg-white dark:bg-zinc-950 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800 hover:border-[#0494f4]/40'
-                }`}
-              >
-                {f.label}
-                <span className={platform === f.id ? 'text-white/70' : 'text-zinc-400'}>{f.count}</span>
-              </button>
-            ))}
-          </div>
-
-          <ul className="space-y-3">
-            {filtered.map((app) => (
-              <AppRow key={`${app.platform}-${app.id}`} app={app} />
-            ))}
-          </ul>
-
-          {filtered.length === 0 && (
-            <div className="text-center py-10">
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">No products found for “{q}”</p>
-              <button onClick={() => setQ('')} className="mt-2 text-xs text-[#0494f4] hover:underline cursor-pointer">Clear search</button>
-            </div>
+      }
+      accountSlot={
+        <a
+          href={ACCOUNTS_WEB_ORIGIN}
+          title={signedIn ? 'Your Bansify account' : 'Sign in'}
+          className="w-9 h-9 rounded-full overflow-hidden ring-1 ring-zinc-200 dark:ring-zinc-700 bg-[#0494f4] text-white flex items-center justify-center text-xs font-bold"
+        >
+          {(account?.avatarUrl || account?.avatar_url) ? (
+            <img src={(account.avatarUrl || account.avatar_url) as string} alt="" className="w-full h-full object-cover" />
+          ) : signedIn && account ? (
+            (account.name || account.username || '?').slice(0, 1).toUpperCase()
+          ) : (
+            <span className="text-[10px]">In</span>
           )}
-        </div>
-
-        {/* Minimal language + India */}
-        <div className="mt-8 text-center text-xs text-zinc-500 dark:text-zinc-500">
-          Offered by Bansify in: <span className="text-[#0494f4]">English • हिन्दी</span>
-        </div>
+        </a>
+      }
+    >
+      <div className="flex items-center gap-2 flex-wrap">
+        {([
+          { id: 'all' as const, label: 'All' },
+          { id: 'web' as const, label: 'Website' },
+          { id: 'android' as const, label: 'Android' },
+        ]).map((f) => (
+          <button
+            key={f.id}
+            type="button"
+            onClick={() => setFilter(f.id)}
+            className={`rounded-full px-3.5 py-1.5 text-xs font-semibold border transition cursor-pointer ${
+              filter === f.id
+                ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 border-transparent'
+                : 'bg-white dark:bg-zinc-950 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800 hover:border-zinc-300'
+            }`}
+          >
+            {f.label}
+          </button>
+        ))}
       </div>
 
-      {/* Google-like footer */}
-      <footer className="mt-auto w-full border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950">
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-3 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-zinc-600 dark:text-zinc-400">
-          <div>India • Jaipur, Rajasthan • Aatmanirbhar Bharat</div>
-          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
-            <a href="https://docs.bansify.com" target="_blank" rel="noreferrer" className="hover:underline flex items-center gap-1">
-              <BookOpen className="w-3 h-3" /> Docs
-            </a>
-            <a href="https://github.com/Bansify" target="_blank" rel="noreferrer" className="hover:underline flex items-center gap-1">
-              <Github className="w-3 h-3" /> GitHub
-            </a>
-            <a href="https://ceo.bansify.com" target="_blank" rel="noreferrer" className="hover:underline">
-              CEO
-            </a>
-            <button onClick={() => onNavigate('company')} className="hover:underline cursor-pointer">About</button>
-            <button onClick={() => onNavigate('contact')} className="hover:underline cursor-pointer">Contact</button>
+      {!q && (
+        <>
+          <h2 className="mt-6 mb-3 text-sm font-semibold text-zinc-900 dark:text-white">Featured</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {featured.map((app) => (
+              <a
+                key={`f-${app.id}`}
+                href={appHref(app)}
+                rel="noopener"
+                className="rounded-2xl border border-zinc-200 dark:border-zinc-800 p-4 hover:border-[#0494f4]/40 hover:shadow-sm transition"
+              >
+                <AppLogo app={app} size={44} />
+                <h3 className="mt-3 text-sm font-semibold text-zinc-900 dark:text-white">{app.name}</h3>
+                <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400 line-clamp-2">{app.summary}</p>
+              </a>
+            ))}
           </div>
+        </>
+      )}
+
+      {webApps.length > 0 && (
+        <Section title="Website" count={webApps.length}>
+          {webApps.map((app) => (
+            <AppCard key={`w-${app.id}`} app={app} />
+          ))}
+        </Section>
+      )}
+
+      {androidApps.length > 0 && (
+        <Section title="Android" count={androidApps.length}>
+          {androidApps.map((app) => (
+            <AppCard key={`a-${app.id}`} app={app} />
+          ))}
+        </Section>
+      )}
+
+      {filtered.length === 0 && (
+        <div className="mt-10 text-center">
+          <p className="text-sm text-zinc-500">No apps match “{q}”</p>
+          <button onClick={() => setQ('')} className="mt-2 text-xs text-[#0494f4] hover:underline cursor-pointer">
+            Clear search
+          </button>
         </div>
-      </footer>
-    </div>
+      )}
+    </AppShell>
   );
 };
