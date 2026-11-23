@@ -234,34 +234,10 @@ export const HomePage: React.FC<{ onNavigate: (p: string) => void }> = ({ onNavi
         </div>
       }
       dock={APP_DOCK}
-      profile={
-        <button
-          type="button"
-          onClick={openAccountCentre}
-          title={signedIn && account ? `${account.name || account.username} — account centre` : 'Sign in with Bansify'}
-          aria-label="Account centre"
-          className="w-9 h-9 rounded-full overflow-hidden ring-1 ring-zinc-200 dark:ring-zinc-700 bg-[#0494f4] text-white flex items-center justify-center text-xs font-bold cursor-pointer"
-        >
-          {avatar ? <img src={avatar as string} alt="" className="w-full h-full object-cover" /> : signedIn && account ? initial : <span className="text-[10px]">In</span>}
-        </button>
-      }
-      headerAction={
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-2 h-9 px-3 rounded-full border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 focus-within:border-[#0494f4]/40 transition">
-            <Search className="w-4 h-4 text-zinc-400" />
-            <input
-              ref={searchRef}
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Search apps"
-              className="w-32 sm:w-56 bg-transparent outline-none text-sm text-zinc-900 dark:text-white placeholder:text-zinc-400"
-            />
-            <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded border border-zinc-200 dark:border-zinc-700 text-[10px] text-zinc-400 font-sans">
-              ⌘K
-            </kbd>
-          </div>
-        </div>
-      }
+      profileName={signedIn && account ? (account.name || account.username) : undefined}
+      profileEmail={signedIn && account ? account.email : undefined}
+      profileAvatar={(account?.avatarUrl || account?.avatar_url) as string | undefined}
+      onProfileClick={openAccountCentre}
     >
       {filter === 'home' && (
         <>
