@@ -7,6 +7,7 @@ import {
   Building2,
   Settings,
   PanelLeft,
+  Menu,
   Bell,
   X,
   ArrowUpRight,
@@ -64,6 +65,7 @@ export const AppShell: React.FC<AppShellProps> = ({
   children,
 }) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [mobileNav, setMobileNav] = useState(false);
   const [preview, setPreview] = useState<RailItem | null>(null);
 
   return (
@@ -78,6 +80,8 @@ export const AppShell: React.FC<AppShellProps> = ({
               key={item.id}
               type="button"
               title={item.label}
+              aria-label={item.label}
+              aria-current={active ? 'page' : undefined}
               onClick={() => onRailSelect?.(item.id)}
               className={`w-10 h-10 rounded-xl flex items-center justify-center transition cursor-pointer ${
                 active ? 'bg-[#0494f4]/10 text-[#0494f4]' : 'text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-900'
@@ -149,6 +153,15 @@ export const AppShell: React.FC<AppShellProps> = ({
       {/* Canvas */}
       <main className="flex-1 min-w-0 flex flex-col overflow-hidden">
         <div className="flex items-center gap-2 px-3 sm:px-6 py-2.5 border-b border-zinc-100 dark:border-zinc-900 shrink-0">
+          {/* Mobile: the rail and sidebar are hidden, so this opens a drawer with both */}
+          <button
+            type="button"
+            onClick={() => setMobileNav(true)}
+            aria-label="Open navigation"
+            className="md:hidden w-8 h-8 rounded-lg flex items-center justify-center text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-900 cursor-pointer"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
           {!sidebarOpen && (
             <button
               type="button"
@@ -175,6 +188,8 @@ export const AppShell: React.FC<AppShellProps> = ({
                 key={item.id}
                 type="button"
                 title={item.label}
+                aria-label={`Preview ${item.label}`}
+                aria-expanded={active}
                 onClick={() => setPreview(active ? null : item)}
                 className={`relative w-10 h-10 rounded-xl flex items-center justify-center transition cursor-pointer ${
                   active ? 'bg-[#0494f4]/10 ring-1 ring-[#0494f4]/30' : 'hover:bg-zinc-100 dark:hover:bg-zinc-900'
@@ -189,6 +204,74 @@ export const AppShell: React.FC<AppShellProps> = ({
             );
           })}
         </aside>
+      )}
+
+      {/* Mobile navigation drawer */}
+      {mobileNav && (
+        <div className="fixed inset-0 z-50 md:hidden" role="dialog" aria-modal="true" aria-label="Navigation">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setMobileNav(false)} />
+          <div className="absolute inset-y-0 left-0 w-[78%] max-w-[300px] bg-white dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800 flex flex-col">
+            <div className="flex items-center justify-between px-4 h-12 border-b border-zinc-200 dark:border-zinc-800">
+              <span className="text-sm font-semibold text-zinc-900 dark:text-white">{sidebarTitle}</span>
+              <button
+                type="button"
+                onClick={() => setMobileNav(false)}
+                aria-label="Close navigation"
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-900 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <nav className="p-2 space-y-0.5 overflow-y-auto">
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                const active = activeNav === item.id;
+                return (
+                  <button
+                    key={`m-${item.id}`}
+                    type="button"
+                    onClick={() => {
+                      onNavSelect(item.id);
+                      setMobileNav(false);
+                    }}
+                    className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm transition cursor-pointer ${
+                      active
+                        ? 'bg-zinc-100 dark:bg-zinc-900 text-zinc-900 dark:text-white font-medium'
+                        : 'text-zinc-600 dark:text-zinc-400'
+                    }`}
+                  >
+                    {Icon && <Icon className="w-4 h-4 shrink-0" />}
+                    <span className="truncate">{item.label}</span>
+                    {item.badge && <span className="ml-auto text-[10px] font-bold text-[#0494f4]">{item.badge}</span>}
+                  </button>
+                );
+              })}
+            </nav>
+            {(rail ?? []).length > 0 && (
+              <div className="mt-auto border-t border-zinc-200 dark:border-zinc-800 p-3 flex items-center gap-2 flex-wrap">
+                {(rail ?? []).map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <button
+                      key={`mr-${item.id}`}
+                      type="button"
+                      aria-label={item.label}
+                      onClick={() => {
+                        onRailSelect?.(item.id);
+                        setMobileNav(false);
+                      }}
+                      className={`w-9 h-9 rounded-xl flex items-center justify-center ${
+                        activeRail === item.id ? 'bg-[#0494f4]/10 text-[#0494f4]' : 'text-zinc-500'
+                      }`}
+                    >
+                      <Icon className="w-4 h-4" />
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
       )}
 
       {/* Phone-frame preview — the app opens inside the site, no redirect */}
