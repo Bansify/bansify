@@ -40,7 +40,6 @@ interface AppShellProps {
   children: React.ReactNode;
 }
 
-/** Dock icon with a glyph fallback, so a missing logo never leaves a blank square. */
 const AppGlyph: React.FC<{ item: RailItem; className?: string }> = ({ item, className = 'w-6 h-6' }) => {
   const [failed, setFailed] = useState(false);
   const Icon = item.icon;
@@ -51,9 +50,10 @@ const AppGlyph: React.FC<{ item: RailItem; className?: string }> = ({ item, clas
 };
 
 /**
- * Brand + navigation in one left panel, a header spanning the full width, then the
- * canvas, any open app panes and the dock underneath it. Panes sit side by side,
- * can be collapsed to a strip and closed.
+ * Structure:
+ *   [ panel (full height) ][ header / canvas + panes ][ dock (full height) ]
+ * The panel and the dock start at the very top edge; only the middle column has a
+ * header, so panes open beneath it.
  */
 export const AppShell: React.FC<AppShellProps> = ({
   navItems,
@@ -78,107 +78,149 @@ export const AppShell: React.FC<AppShellProps> = ({
   const closePane = (id: string) => setPanes((list) => list.filter((p) => p.id !== id));
   const togglePane = (id: string) => setCollapsed((c) => ({ ...c, [id]: !c[id] }));
 
-  const panel = (mobile: boolean) => (
-    <div className="flex flex-col h-full">
-      <div className={`flex items-center gap-2 px-3 pt-3 pb-1 ${expanded || mobile ? '' : 'justify-center'}`}>
-        <img src={brandLogoSrc} alt="Bansify" className="w-8 h-8 rounded-lg object-contain shrink-0" />
-        {(expanded || mobile) && (
-          <span className="text-[19px] font-black tracking-tight text-[#0494f4] dark:text-[#3fb0ff]">{brandName}</span>
-        )}
-      </div>
-
-      <div className={`px-2 pt-1 pb-2 ${expanded || mobile ? '' : 'flex justify-center'}`}>
-        <button
-          type="button"
-          onClick={() => (mobile ? setMobileNav(false) : setExpanded((v) => !v))}
-          aria-label={mobile ? 'Close navigation' : expanded ? 'Collapse panel' : 'Expand panel'}
-          className="inline-flex items-center gap-1.5 h-7 rounded-lg px-2 text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-600 cursor-pointer"
-        >
-          {mobile ? <X className="w-4 h-4" /> : expanded ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-          {(expanded || mobile) && <span className="text-[11px] font-medium">Collapse</span>}
-        </button>
-      </div>
-
-      <nav className="px-2 space-y-0.5 overflow-y-auto">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const active = activeNav === item.id;
-          return (
-            <button
-              key={`${mobile ? 'm' : 'd'}-${item.id}`}
-              type="button"
-              title={item.label}
-              aria-label={item.label}
-              aria-current={active ? 'page' : undefined}
-              onClick={() => {
-                onNavSelect(item.id);
-                if (mobile) setMobileNav(false);
-              }}
-              className={`relative w-full flex items-center gap-2.5 rounded-xl text-[13px] transition cursor-pointer ${
-                expanded || mobile ? 'px-2.5 py-2' : 'justify-center px-0 py-2.5'
-              } ${
-                active
-                  ? 'bg-[#0494f4]/10 text-[#0494f4] font-semibold'
-                  : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900'
-              }`}
-            >
-              {active && <span className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-full bg-[#0494f4]" />}
-              {Icon && <Icon className="w-[18px] h-[18px] shrink-0" />}
-              {(expanded || mobile) && <span className="truncate">{item.label}</span>}
-              {(expanded || mobile) && item.badge && (
-                <span className="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-900 text-zinc-500">
-                  {item.badge}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </nav>
-
-      <div className="mt-auto border-t border-zinc-200 dark:border-zinc-800 p-2">
-        <div className={`flex items-center gap-1 ${expanded || mobile ? '' : 'flex-col'}`}>
-          <button
-            type="button"
-            title="Notifications"
-            aria-label="Notifications"
-            className="w-9 h-9 rounded-xl flex items-center justify-center text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-800 dark:hover:text-zinc-200 cursor-pointer"
-          >
-            <Bell className="w-[18px] h-[18px]" />
-          </button>
-          <button
-            type="button"
-            onClick={toggleTheme}
-            title={isDark ? 'Switch to light' : 'Switch to dark'}
-            aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
-            className="w-9 h-9 rounded-xl flex items-center justify-center text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-800 dark:hover:text-zinc-200 cursor-pointer"
-          >
-            {isDark ? <Sun className="w-[18px] h-[18px]" /> : <Moon className="w-[18px] h-[18px]" />}
-          </button>
-          <button
-            type="button"
-            title="Settings"
-            aria-label="Settings"
-            className="w-9 h-9 rounded-xl flex items-center justify-center text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-800 dark:hover:text-zinc-200 cursor-pointer"
-          >
-            <Settings className="w-[18px] h-[18px]" />
-          </button>
-          {profile}
+  const panel = (mobile: boolean) => {
+    const open = expanded || mobile;
+    return (
+      <div className="flex flex-col h-full bg-white dark:bg-[#212121]">
+        {/* Brand */}
+        <div className={`flex items-center gap-2.5 h-14 shrink-0 ${open ? 'px-4' : 'justify-center px-0'}`}>
+          <img src={brandLogoSrc} alt="Bansify" className="w-8 h-8 rounded-lg object-contain shrink-0" />
+          {open && <span className="text-[18px] font-black tracking-tight text-[#0494f4] dark:text-[#4cb4ff]">{brandName}</span>}
         </div>
-        {panelFooter && (expanded || mobile) && <div className="mt-2 px-1 text-[11px] text-zinc-500 leading-relaxed">{panelFooter}</div>}
+
+        {/* Fold control sits directly under the brand */}
+        <div className={`pb-2 ${open ? 'px-3' : 'px-0 flex justify-center'}`}>
+          <button
+            type="button"
+            onClick={() => (mobile ? setMobileNav(false) : setExpanded((v) => !v))}
+            aria-label={mobile ? 'Close navigation' : expanded ? 'Collapse panel' : 'Expand panel'}
+            title={mobile ? 'Close' : expanded ? 'Collapse' : 'Expand'}
+            className={`inline-flex items-center gap-1.5 h-7 rounded-lg text-zinc-400 hover:bg-zinc-100 dark:hover:bg-[#2a2a2a] hover:text-zinc-600 dark:hover:text-zinc-200 cursor-pointer ${
+              open ? 'px-2' : 'w-7 justify-center'
+            }`}
+          >
+            {mobile ? <X className="w-4 h-4" /> : expanded ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+            {open && !mobile && <span className="text-[11px] font-medium">Collapse</span>}
+          </button>
+        </div>
+
+        <div className={`mx-3 h-px bg-zinc-200 dark:bg-[#333333] ${open ? '' : 'mx-2'}`} />
+
+        {/* Navigation */}
+        <nav className={`mt-2 space-y-0.5 overflow-y-auto ${open ? 'px-2' : 'px-1.5'}`}>
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const active = activeNav === item.id;
+            return (
+              <button
+                key={`${mobile ? 'm' : 'd'}-${item.id}`}
+                type="button"
+                title={item.label}
+                aria-label={item.label}
+                aria-current={active ? 'page' : undefined}
+                onClick={() => {
+                  onNavSelect(item.id);
+                  if (mobile) setMobileNav(false);
+                }}
+                className={`relative w-full flex items-center rounded-xl text-[13px] transition-colors cursor-pointer ${
+                  open ? 'gap-2.5 px-2.5 py-2' : 'justify-center px-0 py-2.5'
+                } ${
+                  active
+                    ? 'bg-[#0494f4]/12 text-[#0494f4] font-semibold'
+                    : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-[#2a2a2a] hover:text-zinc-900 dark:hover:text-zinc-100'
+                }`}
+              >
+                {active && <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-[#0494f4]" />}
+                {Icon && <Icon className="w-[18px] h-[18px] shrink-0" />}
+                {open && <span className="truncate">{item.label}</span>}
+                {open && item.badge && (
+                  <span className="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-zinc-100 dark:bg-[#2a2a2a] text-zinc-500 dark:text-zinc-400">
+                    {item.badge}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Utilities + profile, pinned to the bottom */}
+        <div className="mt-auto">
+          <div className={`mx-3 h-px bg-zinc-200 dark:bg-[#333333] ${open ? '' : 'mx-2'}`} />
+          <div className={`flex items-center gap-1 py-2 ${open ? 'px-2' : 'flex-col px-0'}`}>
+            <button
+              type="button"
+              title="Notifications"
+              aria-label="Notifications"
+              className="w-9 h-9 rounded-xl flex items-center justify-center text-zinc-500 hover:bg-zinc-100 dark:hover:bg-[#2a2a2a] hover:text-zinc-800 dark:hover:text-zinc-200 cursor-pointer"
+            >
+              <Bell className="w-[18px] h-[18px]" />
+            </button>
+            <button
+              type="button"
+              onClick={toggleTheme}
+              title={isDark ? 'Switch to light' : 'Switch to dark'}
+              aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
+              className="w-9 h-9 rounded-xl flex items-center justify-center text-zinc-500 hover:bg-zinc-100 dark:hover:bg-[#2a2a2a] hover:text-zinc-800 dark:hover:text-zinc-200 cursor-pointer"
+            >
+              {isDark ? <Sun className="w-[18px] h-[18px]" /> : <Moon className="w-[18px] h-[18px]" />}
+            </button>
+            <button
+              type="button"
+              title="Settings"
+              aria-label="Settings"
+              className="w-9 h-9 rounded-xl flex items-center justify-center text-zinc-500 hover:bg-zinc-100 dark:hover:bg-[#2a2a2a] hover:text-zinc-800 dark:hover:text-zinc-200 cursor-pointer"
+            >
+              <Settings className="w-[18px] h-[18px]" />
+            </button>
+            {profile && <div className="ml-auto">{profile}</div>}
+          </div>
+          {open && dock && dock.length > 0 && (
+            <div className="px-3 pb-2">
+              <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-zinc-400">Apps</p>
+              <div className="grid grid-cols-4 gap-1.5">
+                {dock.map((item) => (
+                  <button
+                    key={`dock-${item.id}`}
+                    type="button"
+                    title={item.label}
+                    aria-label={`Open ${item.label}`}
+                    onClick={() => {
+                      openPane(item);
+                      if (mobile) setMobileNav(false);
+                    }}
+                    className="h-10 rounded-xl flex items-center justify-center hover:bg-zinc-100 dark:hover:bg-[#2a2a2a] cursor-pointer"
+                  >
+                    <AppGlyph item={item} className="w-5 h-5" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          {panelFooter && open && <div className="px-3 pb-3 text-[11px] text-zinc-500 dark:text-zinc-500 leading-relaxed">{panelFooter}</div>}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
-    <div className="flex h-screen supports-[height:100dvh]:h-[100dvh] w-full overflow-hidden bg-white dark:bg-zinc-950">
-      {/* Panel is full height and top-aligned; the header starts to its right */}
+    <div className="flex h-screen supports-[height:100dvh]:h-[100dvh] w-full overflow-hidden bg-white dark:bg-[#212121]">
+      {/* Left panel: full height, starts at the very top */}
+      <aside
+        className={`hidden md:flex shrink-0 flex-col border-r border-zinc-200 dark:border-[#333333] transition-[width] duration-200 ${
+          expanded ? 'w-60' : 'w-[68px]'
+        }`}
+      >
+        {panel(false)}
+      </aside>
+
+      {/* Middle column: header + canvas + panes */}
       <div className="flex flex-col flex-1 min-w-0">
-        <header className="flex items-center gap-2 px-3 sm:px-5 h-14 shrink-0 border-b border-zinc-200 dark:border-zinc-800">
+        <header className="flex items-center gap-2 px-3 sm:px-5 h-14 shrink-0 border-b border-zinc-200 dark:border-[#333333]">
           <button
             type="button"
             onClick={() => setMobileNav(true)}
             aria-label="Open navigation"
-            className="md:hidden w-8 h-8 rounded-lg flex items-center justify-center text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-900 cursor-pointer"
+            className="md:hidden w-8 h-8 rounded-lg flex items-center justify-center text-zinc-500 hover:bg-zinc-100 dark:hover:bg-[#2a2a2a] cursor-pointer"
           >
             <Menu className="w-5 h-5" />
           </button>
@@ -186,140 +228,138 @@ export const AppShell: React.FC<AppShellProps> = ({
         </header>
 
         <div className="flex flex-1 min-h-0">
-        <aside
-          className={`hidden md:flex shrink-0 flex-col border-r border-zinc-200 dark:border-zinc-800 transition-[width] duration-200 ${
-            expanded ? 'w-60' : 'w-16'
-          }`}
-        >
-          {panel(false)}
-        </aside>
+          <main className="flex-1 min-w-0 flex flex-col overflow-hidden">
+            <div className="flex-1 min-h-0 overflow-y-auto px-3 sm:px-6 py-5">{children}</div>
+          </main>
 
-        <main className="flex-1 min-w-0 flex flex-col overflow-hidden">
-          <div className="flex-1 min-h-0 overflow-y-auto px-3 sm:px-6 py-5">{children}</div>
-        </main>
-
-        {panes.map((pane, index) => {
-          const isCollapsed = collapsed[pane.id];
-          return (
-            <section
-              key={pane.id}
-              className={`hidden md:flex flex-col shrink-0 border-l border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 ${
-                isCollapsed ? 'w-12' : index === 0 ? 'w-[38%] max-w-[520px]' : 'w-[32%] max-w-[440px]'
-              }`}
-            >
-              {isCollapsed ? (
-                <div className="flex flex-col items-center gap-2 py-3">
-                  <button
-                    type="button"
-                    onClick={() => togglePane(pane.id)}
-                    aria-label={`Expand ${pane.label}`}
-                    title={pane.label}
-                    className="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-900 cursor-pointer"
-                  >
-                    <AppGlyph item={pane} className="w-5 h-5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => closePane(pane.id)}
-                    aria-label={`Close ${pane.label}`}
-                    className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 cursor-pointer"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <div className="flex items-center gap-2 h-12 px-3 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
-                    <AppGlyph item={pane} className="w-5 h-5" />
-                    <span className="text-[13px] font-semibold text-zinc-900 dark:text-white truncate">{pane.label}</span>
-                    <div className="ml-auto flex items-center gap-1">
-                      {pane.url && (
-                        <a
-                          href={pane.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-[11px] text-[#0494f4] hover:underline px-1"
-                        >
-                          Open in tab <ArrowUpRight className="w-3 h-3" />
-                        </a>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => togglePane(pane.id)}
-                        aria-label={`Collapse ${pane.label}`}
-                        title="Collapse"
-                        className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 cursor-pointer"
-                      >
-                        <ChevronRight className="w-4 h-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => closePane(pane.id)}
-                        aria-label={`Close ${pane.label}`}
-                        title="Close"
-                        className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 cursor-pointer"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                  {pane.url ? (
-                    <iframe
-                      src={pane.url}
+          {panes.map((pane, index) => {
+            const isCollapsed = collapsed[pane.id];
+            return (
+              <section
+                key={pane.id}
+                className={`hidden md:flex flex-col shrink-0 border-l border-zinc-200 dark:border-[#333333] bg-white dark:bg-[#212121] ${
+                  isCollapsed ? 'w-12' : index === 0 ? 'w-[38%] max-w-[520px]' : 'w-[32%] max-w-[440px]'
+                }`}
+              >
+                {isCollapsed ? (
+                  <div className="flex flex-col items-center gap-2 py-3">
+                    <button
+                      type="button"
+                      onClick={() => togglePane(pane.id)}
+                      aria-label={`Expand ${pane.label}`}
                       title={pane.label}
-                      className="flex-1 w-full border-0 bg-white"
-                      referrerPolicy="strict-origin-when-cross-origin"
-                      allow="clipboard-write; camera; microphone; fullscreen"
-                    />
-                  ) : (
-                    <div className="flex-1 grid place-items-center text-sm text-zinc-500">No preview available</div>
-                  )}
-                </>
-              )}
-            </section>
-          );
-        })}
-
+                      className="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-zinc-100 dark:hover:bg-[#2a2a2a] cursor-pointer"
+                    >
+                      <AppGlyph item={pane} className="w-5 h-5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => closePane(pane.id)}
+                      aria-label={`Close ${pane.label}`}
+                      className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-400 hover:bg-zinc-100 dark:hover:bg-[#2a2a2a] cursor-pointer"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-2 h-12 px-3 border-b border-zinc-200 dark:border-[#333333] shrink-0">
+                      <AppGlyph item={pane} className="w-5 h-5" />
+                      <span className="text-[13px] font-semibold text-zinc-900 dark:text-white truncate">{pane.label}</span>
+                      <div className="ml-auto flex items-center gap-1">
+                        {pane.url && (
+                          <a
+                            href={pane.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-[11px] text-[#0494f4] hover:underline px-1"
+                          >
+                            Open in tab <ArrowUpRight className="w-3 h-3" />
+                          </a>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => togglePane(pane.id)}
+                          aria-label={`Collapse ${pane.label}`}
+                          title="Collapse"
+                          className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-400 hover:bg-zinc-100 dark:hover:bg-[#2a2a2a] cursor-pointer"
+                        >
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => closePane(pane.id)}
+                          aria-label={`Close ${pane.label}`}
+                          title="Close"
+                          className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-400 hover:bg-zinc-100 dark:hover:bg-[#2a2a2a] cursor-pointer"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                    {pane.url ? (
+                      <iframe
+                        src={pane.url}
+                        title={pane.label}
+                        className="flex-1 w-full border-0 bg-white"
+                        referrerPolicy="strict-origin-when-cross-origin"
+                        allow="clipboard-write; camera; microphone; fullscreen"
+                      />
+                    ) : (
+                      <div className="flex-1 grid place-items-center text-sm text-zinc-500">No preview available</div>
+                    )}
+                  </>
+                )}
+              </section>
+            );
+          })}
         </div>
       </div>
 
+      {/* Right dock: full height, profile at the top like the panel has it at the bottom */}
       {dock && dock.length > 0 && (
-        <aside className="hidden lg:flex w-14 shrink-0 flex-col items-center gap-1 border-l border-zinc-200 dark:border-zinc-800 py-3">
-            {dock.map((item) => {
-              const active = panes.some((p) => p.id === item.id);
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  title={item.label}
-                  aria-label={`Open ${item.label}`}
-                  aria-pressed={active}
-                  onClick={() => (active ? closePane(item.id) : openPane(item))}
-                  className={`w-10 h-10 rounded-xl flex items-center justify-center transition cursor-pointer ${
-                    active ? 'bg-[#0494f4]/10 ring-1 ring-[#0494f4]/30' : 'hover:bg-zinc-100 dark:hover:bg-zinc-900'
-                  }`}
-                >
-                  <AppGlyph item={item} />
-                </button>
-              );
-            })}
+        <aside className="hidden lg:flex w-14 shrink-0 flex-col items-center gap-1 border-l border-zinc-200 dark:border-[#333333] py-3">
+          {profile && <div className="mb-1">{profile}</div>}
+          <div className="w-6 h-px bg-zinc-200 dark:bg-[#333333] mb-1" />
+          {dock.map((item) => {
+            const active = panes.some((p) => p.id === item.id);
+            return (
+              <button
+                key={item.id}
+                type="button"
+                title={item.label}
+                aria-label={`Open ${item.label}`}
+                aria-pressed={active}
+                onClick={() => (active ? closePane(item.id) : openPane(item))}
+                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors cursor-pointer ${
+                  active
+                    ? 'bg-[#0494f4]/12 ring-1 ring-[#0494f4]/30'
+                    : 'hover:bg-zinc-100 dark:hover:bg-[#2a2a2a]'
+                }`}
+              >
+                <AppGlyph item={item} />
+              </button>
+            );
+          })}
         </aside>
       )}
 
+      {/* Mobile navigation */}
       {mobileNav && (
         <div className="fixed inset-0 z-50 md:hidden" role="dialog" aria-modal="true" aria-label="Navigation">
           <div className="absolute inset-0 bg-black/40" onClick={() => setMobileNav(false)} />
-          <div className="absolute inset-y-0 left-0 w-[78%] max-w-[300px] bg-white dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800">
+          <div className="absolute inset-y-0 left-0 w-[78%] max-w-[300px] bg-white dark:bg-[#212121] border-r border-zinc-200 dark:border-[#333333]">
             {panel(true)}
           </div>
         </div>
       )}
 
+      {/* Mobile panes */}
       {panes.length > 0 && (
         <div className="md:hidden">
           {panes.slice(-1).map((pane) => (
-            <div key={`m-${pane.id}`} className="fixed inset-0 z-50 flex flex-col bg-white dark:bg-zinc-950">
-              <div className="flex items-center gap-2 h-12 px-3 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
+            <div key={`m-${pane.id}`} className="fixed inset-0 z-50 flex flex-col bg-white dark:bg-[#212121]">
+              <div className="flex items-center gap-2 h-12 px-3 border-b border-zinc-200 dark:border-[#333333] shrink-0">
                 <AppGlyph item={pane} className="w-5 h-5" />
                 <span className="text-[13px] font-semibold text-zinc-900 dark:text-white truncate">{pane.label}</span>
                 <div className="ml-auto flex items-center gap-2">

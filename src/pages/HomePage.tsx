@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { AppShell } from '../components/AppShell';
 import { PUBLIC_APPS, appHref } from '../data/apps';
+import { APP_DOCK } from '../data/dock';
 import type { AppEntry } from '../data/apps';
 import { useGothwadSession } from '../hooks/useGothwadSession';
 import { ACCOUNTS_WEB_ORIGIN } from '../config/brand';
@@ -61,15 +62,6 @@ const HEROES = [
   },
 ];
 
-const DOCK = [
-  { id: 'accounts', label: 'Bansify Accounts', icon: Fingerprint, url: 'https://accounts.bansify.com', logoSrc: 'https://accounts.bansify.com/icon-192.png' },
-  { id: 'mail', label: 'Bansify Mail', icon: Mail, url: 'https://mail.bansify.com', logoSrc: 'https://mail.bansify.com/icon-192.png' },
-  { id: 'drive', label: 'Bansify Drive', icon: HardDrive, url: 'https://drive.bansify.com', logoSrc: 'https://drive.bansify.com/icon-192.png' },
-  { id: 'meet', label: 'Bansify Meet', icon: Video, url: 'https://meet.bansify.com', logoSrc: 'https://meet.bansify.com/icon-192.png' },
-  { id: 'pay', label: 'Bansify Pay', icon: ShoppingBag, url: 'https://pay.bansify.com', logoSrc: 'https://pay.bansify.com/icon-192.png' },
-  { id: 'ai', label: 'Bansify AI', icon: Bot, url: 'https://ai.bansify.com', logoSrc: 'https://ai.bansify.com/icon-192.png' },
-  { id: 'gitplus', label: 'GitPlus', icon: GitBranch, url: 'https://gitplus.bansify.com', logoSrc: 'https://gitplus.bansify.com/icon-192.png' },
-];
 
 const AppLogo: React.FC<{ app: AppEntry; size?: number }> = ({ app, size = 40 }) => {
   const [failed, setFailed] = useState(false);
@@ -241,7 +233,7 @@ export const HomePage: React.FC<{ onNavigate: (p: string) => void }> = ({ onNavi
           )}
         </div>
       }
-      dock={DOCK}
+      dock={APP_DOCK}
       profile={
         <button
           type="button"
@@ -297,15 +289,26 @@ export const HomePage: React.FC<{ onNavigate: (p: string) => void }> = ({ onNavi
                   i === 0 ? 'lg:col-span-2 min-h-[240px]' : ''
                 }`}
               >
-                <div className="absolute -right-10 -top-10 w-40 h-40 rounded-full bg-white/10 blur-2xl group-hover:scale-125 transition-transform duration-500" />
+                <div className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:linear-gradient(to_right,rgba(255,255,255,.5)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,.5)_1px,transparent_1px)] [background-size:28px_28px]" />
+                <div className="absolute -right-12 -top-12 w-48 h-48 rounded-full bg-white/15 blur-3xl group-hover:scale-125 transition-transform duration-500" />
+                <div className="absolute -left-16 -bottom-16 w-40 h-40 rounded-full bg-black/20 blur-2xl" />
                 <div className="relative">
                   <span className="inline-flex items-center rounded-full bg-white/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider backdrop-blur">
                     {h.eyebrow}
                   </span>
                   <h3 className={`mt-3 font-black tracking-tight ${i === 0 ? 'text-2xl sm:text-3xl' : 'text-xl'}`}>{h.title}</h3>
                   <p className="mt-1.5 text-sm text-white/80 max-w-lg">{h.body}</p>
+                  {i === 0 && (
+                    <div className="mt-4 flex flex-wrap items-center gap-2">
+                      {['Free for 1 year', 'Web · Android · TV', 'One account'].map((chip) => (
+                        <span key={chip} className="rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-medium backdrop-blur">
+                          {chip}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                <span className="relative mt-4 inline-flex items-center gap-1.5 text-sm font-semibold">
+                <span className="relative mt-4 inline-flex items-center gap-1.5 rounded-full bg-white/95 px-4 py-2 text-[13px] font-bold text-zinc-900 shadow-sm transition group-hover:bg-white">
                   {h.cta} <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                 </span>
               </a>
