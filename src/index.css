@@ -16,10 +16,10 @@
   --color-brand-950: #062b4c;
   --color-brand: #0494f4;
 
-  --color-zinc-950: #202124;
-  --color-zinc-900: #292a2d;
-  --color-zinc-850: #2e2f33;
-  --color-zinc-800: #303134;
+  --color-zinc-950: #212121;
+  --color-zinc-900: #2a2a2a;
+  --color-zinc-850: #303030;
+  --color-zinc-800: #333333;
   --color-zinc-700: #3c4043;
   --color-zinc-600: #5f6368;
   --color-zinc-500: #80868b;
@@ -36,7 +36,7 @@
 
 html.dark,
 html.dark body {
-  background-color: #202124 !important;
+  background-color: #212121 !important;
   color: #e8eaed !important;
 }
 

@@ -6,7 +6,11 @@ import {
   ArrowUpRight,
   ChevronLeft,
   ChevronRight,
+  Settings,
+  Sun,
+  Moon,
 } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
 
 export interface ShellNavItem {
   id: string;
@@ -63,6 +67,7 @@ export const AppShell: React.FC<AppShellProps> = ({
   headerAction,
   children,
 }) => {
+  const { isDark, toggleTheme } = useTheme();
   const [expanded, setExpanded] = useState(true);
   const [mobileNav, setMobileNav] = useState(false);
   const [panes, setPanes] = useState<RailItem[]>([]);
@@ -136,9 +141,26 @@ export const AppShell: React.FC<AppShellProps> = ({
             type="button"
             title="Notifications"
             aria-label="Notifications"
-            className="w-9 h-9 rounded-xl flex items-center justify-center text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-900 cursor-pointer"
+            className="w-9 h-9 rounded-xl flex items-center justify-center text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-800 dark:hover:text-zinc-200 cursor-pointer"
           >
             <Bell className="w-[18px] h-[18px]" />
+          </button>
+          <button
+            type="button"
+            onClick={toggleTheme}
+            title={isDark ? 'Switch to light' : 'Switch to dark'}
+            aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
+            className="w-9 h-9 rounded-xl flex items-center justify-center text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-800 dark:hover:text-zinc-200 cursor-pointer"
+          >
+            {isDark ? <Sun className="w-[18px] h-[18px]" /> : <Moon className="w-[18px] h-[18px]" />}
+          </button>
+          <button
+            type="button"
+            title="Settings"
+            aria-label="Settings"
+            className="w-9 h-9 rounded-xl flex items-center justify-center text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-800 dark:hover:text-zinc-200 cursor-pointer"
+          >
+            <Settings className="w-[18px] h-[18px]" />
           </button>
           {profile}
         </div>
@@ -148,20 +170,22 @@ export const AppShell: React.FC<AppShellProps> = ({
   );
 
   return (
-    <div className="flex flex-col h-screen supports-[height:100dvh]:h-[100dvh] w-full overflow-hidden bg-white dark:bg-zinc-950">
-      <header className="flex items-center gap-2 px-3 sm:px-5 h-14 shrink-0 border-b border-zinc-200 dark:border-zinc-800">
-        <button
-          type="button"
-          onClick={() => setMobileNav(true)}
-          aria-label="Open navigation"
-          className="md:hidden w-8 h-8 rounded-lg flex items-center justify-center text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-900 cursor-pointer"
-        >
-          <Menu className="w-5 h-5" />
-        </button>
-        <div className="flex-1 min-w-0">{headerAction}</div>
-      </header>
+    <div className="flex h-screen supports-[height:100dvh]:h-[100dvh] w-full overflow-hidden bg-white dark:bg-zinc-950">
+      {/* Panel is full height and top-aligned; the header starts to its right */}
+      <div className="flex flex-col flex-1 min-w-0">
+        <header className="flex items-center gap-2 px-3 sm:px-5 h-14 shrink-0 border-b border-zinc-200 dark:border-zinc-800">
+          <button
+            type="button"
+            onClick={() => setMobileNav(true)}
+            aria-label="Open navigation"
+            className="md:hidden w-8 h-8 rounded-lg flex items-center justify-center text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-900 cursor-pointer"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+          <div className="flex-1 min-w-0">{headerAction}</div>
+        </header>
 
-      <div className="flex flex-1 min-h-0">
+        <div className="flex flex-1 min-h-0">
         <aside
           className={`hidden md:flex shrink-0 flex-col border-r border-zinc-200 dark:border-zinc-800 transition-[width] duration-200 ${
             expanded ? 'w-60' : 'w-16'
@@ -256,8 +280,11 @@ export const AppShell: React.FC<AppShellProps> = ({
           );
         })}
 
-        {dock && dock.length > 0 && (
-          <aside className="hidden lg:flex w-14 shrink-0 flex-col items-center gap-1 border-l border-zinc-200 dark:border-zinc-800 py-3">
+        </div>
+      </div>
+
+      {dock && dock.length > 0 && (
+        <aside className="hidden lg:flex w-14 shrink-0 flex-col items-center gap-1 border-l border-zinc-200 dark:border-zinc-800 py-3">
             {dock.map((item) => {
               const active = panes.some((p) => p.id === item.id);
               return (
@@ -276,9 +303,8 @@ export const AppShell: React.FC<AppShellProps> = ({
                 </button>
               );
             })}
-          </aside>
-        )}
-      </div>
+        </aside>
+      )}
 
       {mobileNav && (
         <div className="fixed inset-0 z-50 md:hidden" role="dialog" aria-modal="true" aria-label="Navigation">
