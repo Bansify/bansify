@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import { Search, ArrowUpRight, Download, Globe, Smartphone, LayoutGrid, Star, Settings } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Search, ArrowUpRight, Download, Globe, Smartphone, LayoutGrid, Star, Settings, PenLine, Video, Upload, ChevronDown, CheckCircle2 } from 'lucide-react';
 import { AppShell, RAIL_ITEMS } from '../components/AppShell';
 import { PUBLIC_APPS, appHref } from '../data/apps';
 import type { AppEntry } from '../data/apps';
@@ -90,7 +90,21 @@ export const HomePage: React.FC<{ onNavigate: (p: string) => void }> = ({ onNavi
   const [filter, setFilter] = useState<Filter>('all');
   const [q, setQ] = useState('');
   const [rail, setRail] = useState('apps');
+  const searchRef = useRef<HTMLInputElement | null>(null);
   const session = useGothwadSession();
+
+  // The ⌘K hint in the header is real: focus the search field from anywhere.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        searchRef.current?.focus();
+      }
+      if (e.key === 'Escape') searchRef.current?.blur();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
@@ -160,22 +174,67 @@ export const HomePage: React.FC<{ onNavigate: (p: string) => void }> = ({ onNavi
         </div>
       }
       headerAction={
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-2 h-9 px-3 rounded-full border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
+        <div className="flex items-center gap-2 w-full">
+          {/* Search with a keyboard hint */}
+          <div className="flex items-center gap-2 h-9 px-3 rounded-full border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 focus-within:border-[#0494f4]/40 transition">
             <Search className="w-4 h-4 text-zinc-400" />
             <input
+              ref={searchRef}
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="Search apps"
-              className="w-32 sm:w-56 bg-transparent outline-none text-sm text-zinc-900 dark:text-white placeholder:text-zinc-400"
+              className="w-32 sm:w-52 bg-transparent outline-none text-sm text-zinc-900 dark:text-white placeholder:text-zinc-400"
             />
+            <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded border border-zinc-200 dark:border-zinc-700 text-[10px] text-zinc-400 font-sans">
+              ⌘K
+            </kbd>
           </div>
+
+          {/* Quick actions — the space to the right of search now does something */}
+          <div className="hidden lg:flex items-center gap-1.5 ml-1">
+            <a
+              href="https://mail.bansify.com/?compose=1"
+              className="inline-flex items-center gap-1.5 h-9 px-3 rounded-full border border-zinc-200 dark:border-zinc-800 text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:border-[#0494f4]/40 hover:text-[#0494f4] transition"
+            >
+              <PenLine className="w-3.5 h-3.5" /> Compose
+            </a>
+            <a
+              href="https://meet.bansify.com/"
+              className="inline-flex items-center gap-1.5 h-9 px-3 rounded-full border border-zinc-200 dark:border-zinc-800 text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:border-[#0494f4]/40 hover:text-[#0494f4] transition"
+            >
+              <Video className="w-3.5 h-3.5" /> New meeting
+            </a>
+            <a
+              href="https://drive.bansify.com/"
+              className="inline-flex items-center gap-1.5 h-9 px-3 rounded-full border border-zinc-200 dark:border-zinc-800 text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:border-[#0494f4]/40 hover:text-[#0494f4] transition"
+            >
+              <Upload className="w-3.5 h-3.5" /> Upload
+            </a>
+          </div>
+
+          <span className="hidden xl:inline-flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 ml-1">
+            <CheckCircle2 className="w-3.5 h-3.5" /> All apps online
+          </span>
+
+          {/* Profile sits beside search — no redirect button */}
           <a
             href={ACCOUNTS_WEB_ORIGIN}
-            className="hidden sm:inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full bg-[#0494f4] hover:bg-[#0384db] text-white text-xs font-semibold"
+            title={signedIn ? 'Open account centre' : 'Sign in with Bansify'}
+            className="ml-auto inline-flex items-center gap-2 h-9 pl-1.5 pr-3 rounded-full border border-zinc-200 dark:border-zinc-800 hover:border-[#0494f4]/40 transition"
           >
-            {signedIn ? 'Account' : 'Sign in'}
-            <ArrowUpRight className="w-3.5 h-3.5" />
+            <span className="w-6 h-6 rounded-full overflow-hidden bg-[#0494f4] text-white flex items-center justify-center text-[10px] font-bold shrink-0">
+              {(account?.avatarUrl || account?.avatar_url) ? (
+                <img src={(account.avatarUrl || account.avatar_url) as string} alt="" className="w-full h-full object-cover" />
+              ) : signedIn && account ? (
+                (account.name || account.username || '?').slice(0, 1).toUpperCase()
+              ) : (
+                'In'
+              )}
+            </span>
+            <span className="hidden sm:block text-xs font-medium text-zinc-700 dark:text-zinc-300 max-w-[120px] truncate">
+              {signedIn && account ? (account.name || account.username) : 'Sign in'}
+            </span>
+            <ChevronDown className="w-3.5 h-3.5 text-zinc-400" />
           </a>
         </div>
       }
