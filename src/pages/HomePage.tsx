@@ -4,10 +4,14 @@ import { Logo } from '../components/Logo';
 import { PUBLIC_APPS } from '../data/apps';
 import { AppRow } from '../components/AppRow';
 
+type PlatformFilter = 'all' | 'web' | 'android';
+
 export const HomePage: React.FC<{ onNavigate: (p: string) => void }> = ({ onNavigate }) => {
   const [q, setQ] = useState('');
+  const [platform, setPlatform] = useState<PlatformFilter>('all');
 
   const filtered = PUBLIC_APPS.filter((app) => {
+    if (platform !== 'all' && app.platform !== platform) return false;
     if (!q.trim()) return true;
     const s = q.toLowerCase();
     return (
@@ -69,14 +73,32 @@ export const HomePage: React.FC<{ onNavigate: (p: string) => void }> = ({ onNavi
         {/* Product grid — like Google apps / Chrome shortcuts */}
         <div className="w-full mt-8">
           <div className="flex items-center justify-center gap-2 mb-3">
-            <span className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500 dark:text-zinc-500">QUICK ACCESS</span>
+            <span className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500 dark:text-zinc-500">
+              All Bansify apps
+            </span>
             <span className="h-px flex-1 max-w-24 bg-zinc-200 dark:bg-zinc-800" />
-            <button
-              onClick={() => onNavigate('ecosystem')}
-              className="text-xs text-[#0494f4] hover:underline inline-flex items-center gap-1 cursor-pointer"
-            >
-              See all <ArrowUpRight className="w-3 h-3" />
-            </button>
+          </div>
+
+          <div className="flex items-center justify-center gap-2 flex-wrap mb-4">
+            {([
+              { id: 'all' as const, label: 'All', count: PUBLIC_APPS.length },
+              { id: 'web' as const, label: 'Website', count: PUBLIC_APPS.filter((a) => a.platform === 'web').length },
+              { id: 'android' as const, label: 'Android', count: PUBLIC_APPS.filter((a) => a.platform === 'android').length },
+            ]).map((f) => (
+              <button
+                key={f.id}
+                type="button"
+                onClick={() => setPlatform(f.id)}
+                className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold border transition cursor-pointer ${
+                  platform === f.id
+                    ? 'bg-[#0494f4] text-white border-[#0494f4]'
+                    : 'bg-white dark:bg-zinc-950 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800 hover:border-[#0494f4]/40'
+                }`}
+              >
+                {f.label}
+                <span className={platform === f.id ? 'text-white/70' : 'text-zinc-400'}>{f.count}</span>
+              </button>
+            ))}
           </div>
 
           <ul className="space-y-3">
