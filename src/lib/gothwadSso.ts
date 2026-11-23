@@ -105,10 +105,9 @@ async function fetchBounded(url: string, init: RequestInit, timeoutMs = DEFAULT_
 // Try candidates in order — mirrors Drive/Mail where each app has its own Worker at its subdomain
 // Website apex has no Worker yet, so we fall back to Drive/Mail which DO have CORS for bansify.com + e2b.app
 const ME_CANDIDATES = [
-  "/api/me", // relative — works when website deploys its own Worker (future), same as Drive
-  "https://drive.bansify.com/api/me", // Drive Worker — allows bansify.com, *.bansify.com, e2b.app
-  "https://mail.bansify.com/api/session?meta=0", // Mail identity — same CORS
-  `${ACCOUNTS_API_ORIGIN}/api/me`, // direct Accounts API — last resort
+  "https://drive.bansify.com/api/me", // Drive Worker — allows bansify.com and *.bansify.com
+  "https://mail.bansify.com/api/session?meta=0", // Mail identity — same CORS policy
+  `${ACCOUNTS_API_ORIGIN}/api/auth/me`, // Accounts API — authoritative session
 ];
 
 async function fetchOneMe(candidate: string, authuser: number): Promise<{ res: Response | null; err?: any }> {
@@ -162,8 +161,10 @@ export async function fetchGothwadSession(authuser = 0): Promise<FetchMeResult> 
       if (res.status === 401) {
         return { status: "anonymous", authenticated: false, activeId: null, authuser, user: null, accounts: [], errorKind: "none", errorMessage: null };
       }
-      // 200 but not authenticated — treat as anonymous if candidates exhausted
-      if (res.ok && !data?.authenticated) {
+      // A 200 with parsed JSON and authenticated:false is a real answer; anything else
+      // (an SPA fallback serving index.html, for example) must fall through to the next
+      // candidate instead of being mistaken for "signed out".
+      if (res.ok && data && data.authenticated === false) {
         return { status: "anonymous", authenticated: false, activeId: null, authuser, user: null, accounts: [], errorKind: "none", errorMessage: null };
       }
     }
@@ -190,7 +191,6 @@ export const fetchSsoMe = fetchGothwadSession;
 // Helpers for switch / signout — try relative then drive fallback
 async function postWithFallback(path: string, body: string, authuser: number): Promise<{ ok: boolean; error?: string }> {
   const candidates = [
-    path, // relative
     `https://drive.bansify.com${path}`,
     `${ACCOUNTS_API_ORIGIN}${path}`,
   ];
@@ -206,7 +206,6 @@ async function postWithFallback(path: string, body: string, authuser: number): P
         if (res.status === 409 || res.status === 401) return { ok: false, error: data?.message || `Switch failed (${res.status})` };
         if (!res.ok) continue; // try next candidate
       } else if (res.ok) return { ok: true };
-      if (res.ok) return { ok: true };
     } catch {}
   }
   return { ok: false, error: "Network error" };
