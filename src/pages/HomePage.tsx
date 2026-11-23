@@ -260,19 +260,6 @@ export const HomePage: React.FC<{ onNavigate: (p: string) => void }> = ({ onNavi
               ⌘K
             </kbd>
           </div>
-          <button
-            type="button"
-            onClick={openAccountCentre}
-            className="inline-flex items-center gap-1.5 h-9 px-3 rounded-full border border-zinc-200 dark:border-zinc-800 hover:border-[#0494f4]/40 transition cursor-pointer"
-          >
-            <span className="w-6 h-6 rounded-full overflow-hidden bg-[#0494f4] text-white flex items-center justify-center text-[10px] font-bold">
-              {avatar ? <img src={avatar as string} alt="" className="w-full h-full object-cover" /> : signedIn && account ? initial : 'In'}
-            </span>
-            <span className="hidden sm:block text-xs font-medium text-zinc-700 dark:text-zinc-300 max-w-[120px] truncate">
-              {signedIn && account ? account.name || account.username : 'Sign in'}
-            </span>
-            <ChevronDown className="w-3.5 h-3.5 text-zinc-400" />
-          </button>
         </div>
       }
     >

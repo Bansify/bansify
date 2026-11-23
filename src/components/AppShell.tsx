@@ -332,13 +332,13 @@ export const AppShell: React.FC<AppShellProps> = ({
                 aria-label={`Open ${item.label}`}
                 aria-pressed={active}
                 onClick={() => (active ? closePane(item.id) : openPane(item))}
-                className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors cursor-pointer ${
+                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors cursor-pointer ${
                   active
                     ? 'bg-[#0494f4]/12 ring-1 ring-[#0494f4]/30'
                     : 'hover:bg-zinc-100 dark:hover:bg-[#2a2a2a]'
                 }`}
               >
-                <AppGlyph item={item} className="w-9 h-9" />
+                <AppGlyph item={item} className="w-7 h-7" />
               </button>
               </React.Fragment>
             );
