@@ -1,7 +1,7 @@
 import React, { useEffect, useState, Suspense, lazy } from 'react';
 import { ThemeProvider } from './context/ThemeContext';
-import { Navbar } from './components/Navbar';
-import { Footer } from './components/Footer';
+import { PageShell } from './components/PageShell';
+
 
 const HomePage = lazy(() => import('./pages/HomePage').then((m) => ({ default: m.HomePage })));
 const EcosystemPage = lazy(() => import('./pages/EcosystemPage').then((m) => ({ default: m.EcosystemPage })));
@@ -365,27 +365,32 @@ function AppContent() {
     }
   }, [activePage]);
 
-  // The home route renders its own productive shell (icon rail + sidebar), so the
-  // global navbar and footer would only duplicate it.
-  const usesShell = activePage === 'home';
+  // One shell for the whole site: the home route brings its own (it adds app filters),
+  // every other route is wrapped in PageShell so the rail and sidebar never change.
+  const isHome = activePage === 'home';
+
+  const pageContent = (
+    <Suspense fallback={<RouteFallback />}>
+      {activePage === 'ecosystem' && <EcosystemPage />}
+      {activePage === 'products' && <ProductsPage />}
+      {activePage === 'solutions' && <SolutionsPage onNavigate={handleNavigate} />}
+      {activePage === 'docs' && <DocsPage />}
+      {activePage === 'company' && <CompanyPage onNavigate={handleNavigate} />}
+      {activePage === 'contact' && <ContactPage />}
+    </Suspense>
+  );
 
   return (
-    <div className="min-h-screen bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 selection:bg-[#0494f4]/25 selection:text-[#0494f4] flex flex-col font-sans">
-      {!usesShell && <Navbar activePage={activePage} onNavigate={handleNavigate} />}
-
-      <main className={usesShell ? 'flex-1 min-h-0' : 'flex-1 pt-[56px]'}>
-        <Suspense fallback={<RouteFallback />}>
-          {activePage === 'home' && <HomePage onNavigate={handleNavigate} />}
-          {activePage === 'ecosystem' && <EcosystemPage />}
-          {activePage === 'products' && <ProductsPage />}
-          {activePage === 'solutions' && <SolutionsPage onNavigate={handleNavigate} />}
-          {activePage === 'docs' && <DocsPage />}
-          {activePage === 'company' && <CompanyPage onNavigate={handleNavigate} />}
-          {activePage === 'contact' && <ContactPage />}
-        </Suspense>
+    <div className="h-[100dvh] bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 selection:bg-[#0494f4]/25 selection:text-[#0494f4] flex flex-col font-sans overflow-hidden">
+      <main className="flex-1 min-h-0">
+        {isHome ? (
+          <HomePage onNavigate={handleNavigate} />
+        ) : (
+          <PageShell activePage={activePage} onNavigate={handleNavigate}>
+            {pageContent}
+          </PageShell>
+        )}
       </main>
-
-      {!usesShell && <Footer onNavigate={handleNavigate} />}
     </div>
   );
 }

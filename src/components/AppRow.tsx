@@ -50,7 +50,7 @@ export const AppRow: React.FC<{ app: AppEntry }> = ({ app }) => {
           </div>
           <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400 truncate">{app.summary}</p>
           {href && (
-            <a href={href} className="mt-1 inline-block text-xs text-zinc-500 hover:text-[#0494f4] truncate max-w-full" rel="noopener">
+            <a href={href} className="mt-1 inline-block text-xs text-zinc-500 hover:text-[#0494f4] truncate max-w-full" target="_blank" rel="noopener noreferrer">
               {isAndroid ? `github.com/Bansify/${app.repo}` : href.replace('https://', '')}
             </a>
           )}
@@ -60,7 +60,9 @@ export const AppRow: React.FC<{ app: AppEntry }> = ({ app }) => {
           <a
             href={href}
             className="shrink-0 inline-flex items-center gap-1.5 rounded-full bg-[#0494f4] hover:bg-[#0384db] text-white text-sm font-semibold px-4 py-2 transition"
-            {...(isAndroid ? { download: '' } : { rel: 'noopener' })}
+            target="_blank"
+            rel="noopener noreferrer"
+            {...(isAndroid ? { download: '' } : {})}
           >
             {isAndroid ? <Download className="w-4 h-4" /> : <ArrowUpRight className="w-4 h-4" />}
             {isAndroid ? 'Download' : 'Open'}
