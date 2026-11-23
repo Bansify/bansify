@@ -1,6 +1,7 @@
 import React, { useEffect, useState, Suspense, lazy } from 'react';
 import { ThemeProvider } from './context/ThemeContext';
 import { PageShell } from './components/PageShell';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 
 const HomePage = lazy(() => import('./pages/HomePage').then((m) => ({ default: m.HomePage })));
@@ -381,8 +382,9 @@ function AppContent() {
   );
 
   return (
-    <div className="h-[100dvh] bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 selection:bg-[#0494f4]/25 selection:text-[#0494f4] flex flex-col font-sans overflow-hidden">
+    <div className="h-screen supports-[height:100dvh]:h-[100dvh] bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 selection:bg-[#0494f4]/25 selection:text-[#0494f4] flex flex-col font-sans overflow-hidden">
       <main className="flex-1 min-h-0">
+        <ErrorBoundary>
         {isHome ? (
           <HomePage onNavigate={handleNavigate} />
         ) : (
@@ -390,6 +392,7 @@ function AppContent() {
             {pageContent}
           </PageShell>
         )}
+        </ErrorBoundary>
       </main>
     </div>
   );
