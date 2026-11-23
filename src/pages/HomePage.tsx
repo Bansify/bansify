@@ -278,38 +278,27 @@ export const HomePage: React.FC<{ onNavigate: (p: string) => void }> = ({ onNavi
     >
       {filter === 'home' && (
         <>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {HEROES.map((h, i) => (
+          {/* One row, 16:9 cards; images come later, the copy stays as it is */}
+          <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory">
+            {HEROES.map((h) => (
               <a
                 key={h.id}
                 href={h.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`group relative overflow-hidden rounded-3xl bg-gradient-to-br ${h.tone} p-6 min-h-[190px] flex flex-col justify-between text-white shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 ${
-                  i === 0 ? 'lg:col-span-2 min-h-[240px]' : ''
-                }`}
+                className={`group relative shrink-0 snap-start overflow-hidden rounded-2xl bg-gradient-to-br ${h.tone} aspect-[16/9] w-[280px] sm:w-[320px] lg:w-[calc((100%-2.25rem)/3)] lg:max-w-[380px] p-4 flex flex-col justify-between text-white shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5`}
               >
-                <div className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:linear-gradient(to_right,rgba(255,255,255,.5)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,.5)_1px,transparent_1px)] [background-size:28px_28px]" />
-                <div className="absolute -right-12 -top-12 w-48 h-48 rounded-full bg-white/15 blur-3xl group-hover:scale-125 transition-transform duration-500" />
-                <div className="absolute -left-16 -bottom-16 w-40 h-40 rounded-full bg-black/20 blur-2xl" />
+                <div className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:linear-gradient(to_right,rgba(255,255,255,.5)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,.5)_1px,transparent_1px)] [background-size:24px_24px]" />
+                <div className="absolute -right-10 -top-10 w-32 h-32 rounded-full bg-white/15 blur-2xl group-hover:scale-125 transition-transform duration-500" />
                 <div className="relative">
-                  <span className="inline-flex items-center rounded-full bg-white/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider backdrop-blur">
+                  <span className="inline-flex items-center rounded-full bg-white/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider backdrop-blur">
                     {h.eyebrow}
                   </span>
-                  <h3 className={`mt-3 font-black tracking-tight ${i === 0 ? 'text-2xl sm:text-3xl' : 'text-xl'}`}>{h.title}</h3>
-                  <p className="mt-1.5 text-sm text-white/80 max-w-lg">{h.body}</p>
-                  {i === 0 && (
-                    <div className="mt-4 flex flex-wrap items-center gap-2">
-                      {['Free for 1 year', 'Web · Android · TV', 'One account'].map((chip) => (
-                        <span key={chip} className="rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-medium backdrop-blur">
-                          {chip}
-                        </span>
-                      ))}
-                    </div>
-                  )}
+                  <h3 className="mt-2 text-base font-black tracking-tight leading-tight line-clamp-2">{h.title}</h3>
+                  <p className="mt-1 text-[12px] text-white/80 line-clamp-2">{h.body}</p>
                 </div>
-                <span className="relative mt-4 inline-flex items-center gap-1.5 rounded-full bg-white/95 px-4 py-2 text-[13px] font-bold text-zinc-900 shadow-sm transition group-hover:bg-white">
-                  {h.cta} <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                <span className="relative mt-2 inline-flex items-center gap-1 text-[12px] font-semibold">
+                  {h.cta} <ArrowUpRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                 </span>
               </a>
             ))}
