@@ -6,6 +6,7 @@ import {
 import { AppShell } from '../components/AppShell';
 import { PUBLIC_APPS, appHref } from '../data/apps';
 import { APP_DOCK } from '../data/dock';
+import { SITE_NAV } from '../data/nav';
 import type { AppEntry } from '../data/apps';
 import { useGothwadSession } from '../hooks/useGothwadSession';
 import { ACCOUNTS_WEB_ORIGIN } from '../config/brand';
@@ -199,21 +200,11 @@ export const HomePage: React.FC<{ onNavigate: (p: string) => void }> = ({ onNavi
     <AppShell
       brandName="Bansify"
       brandLogoSrc="/assets/brand/logo.png"
-      navItems={[
-        { id: 'home', label: 'Home', icon: Home },
-        { id: 'all', label: 'All apps', icon: LayoutGrid, badge: String(PUBLIC_APPS.length) },
-        { id: 'web', label: 'Website', icon: Globe, badge: String(PUBLIC_APPS.filter((a) => a.platform === 'web').length) },
-        { id: 'android', label: 'Android', icon: Smartphone, badge: String(PUBLIC_APPS.filter((a) => a.platform === 'android').length) },
-        { id: 'featured', label: 'Featured', icon: Star },
-        { id: 'products', label: 'Products', icon: LayoutGrid },
-        { id: 'docs', label: 'Docs', icon: Globe },
-        { id: 'account', label: 'Account centre', icon: Settings },
-      ]}
+      navItems={SITE_NAV}
       activeNav={filter}
       onNavSelect={(id) => {
         if (id === 'account') return openAccountCentre();
-        if (id === 'products') return onNavigate('products');
-        if (id === 'docs') return onNavigate('docs');
+        if (id === 'products' || id === 'docs' || id === 'company' || id === 'contact') return onNavigate(id);
         if (id === 'featured') return setFilter('all');
         setFilter(id as Filter);
       }}
