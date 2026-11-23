@@ -117,10 +117,13 @@ export const PUBLIC_APPS = APPS.filter((app) => !app.hidden);
 export const WEB_APPS = PUBLIC_APPS.filter((app) => app.platform === 'web');
 export const ANDROID_APPS = PUBLIC_APPS.filter((app) => app.platform === 'android');
 
-/** Direct APK download — no GitHub page in between. */
+/**
+ * Direct APK download — no GitHub page in between. The store resolves the repo's
+ * newest release, so these links never pin a version and cannot go stale.
+ */
 export function downloadUrl(app: AppEntry): string | undefined {
-  if (app.platform !== 'android' || !app.repo || !app.asset) return undefined;
-  return `https://github.com/Bansify/${app.repo}/releases/latest/download/${app.asset}`;
+  if (app.platform !== 'android' || !app.repo) return undefined;
+  return `https://store.bansify.com/api/dl/${app.repo}`;
 }
 
 export function appHref(app: AppEntry): string | undefined {
