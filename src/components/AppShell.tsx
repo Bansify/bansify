@@ -123,7 +123,7 @@ export const AppShell: React.FC<AppShellProps> = ({
                   if (mobile) setMobileNav(false);
                 }}
                 className={`relative w-full flex items-center rounded-xl text-[13px] transition-colors cursor-pointer ${
-                  open ? 'gap-2.5 px-2.5 py-2' : 'justify-center px-0 py-2.5'
+                  open ? 'gap-2.5 px-2.5 py-2' : 'w-11 h-11 mx-auto justify-center px-0'
                 } ${
                   active
                     ? 'bg-[#0494f4]/12 text-[#0494f4] font-semibold'
@@ -131,7 +131,7 @@ export const AppShell: React.FC<AppShellProps> = ({
                 }`}
               >
                 {active && <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-[#0494f4]" />}
-                {Icon && <Icon className="w-[18px] h-[18px] shrink-0" />}
+                {Icon && <Icon className={`${open ? 'w-[18px] h-[18px]' : 'w-[22px] h-[22px]'} shrink-0`} />}
                 {open && <span className="truncate">{item.label}</span>}
                 {open && item.badge && (
                   <span className="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-zinc-100 dark:bg-[#2a2a2a] text-zinc-500 dark:text-zinc-400">
@@ -146,7 +146,7 @@ export const AppShell: React.FC<AppShellProps> = ({
         {/* Utilities + profile, pinned to the bottom */}
         <div className="mt-auto">
           <div className={`mx-3 h-px bg-zinc-200 dark:bg-[#333333] ${open ? '' : 'mx-2'}`} />
-          <div className={`flex items-center gap-1 py-2 ${open ? 'px-2' : 'flex-col px-0'}`}>
+          <div className={`flex items-center gap-1 py-2 ${open ? 'px-2' : 'flex-col items-center px-0'}`}>
             <button
               type="button"
               title="Notifications"
@@ -172,7 +172,7 @@ export const AppShell: React.FC<AppShellProps> = ({
             >
               <Settings className="w-[18px] h-[18px]" />
             </button>
-            {profile && <div className="ml-auto">{profile}</div>}
+            {profile && <div className={open ? 'ml-auto' : ''}>{profile}</div>}
           </div>
           {open && dock && dock.length > 0 && (
             <div className="px-3 pb-2">
@@ -321,24 +321,26 @@ export const AppShell: React.FC<AppShellProps> = ({
         <aside className="hidden lg:flex w-14 shrink-0 flex-col items-center gap-1 border-l border-zinc-200 dark:border-[#333333] py-3">
           {profile && <div className="mb-1">{profile}</div>}
           <div className="w-6 h-px bg-zinc-200 dark:bg-[#333333] mb-1" />
-          {dock.map((item) => {
+          {dock.map((item, index) => {
             const active = panes.some((p) => p.id === item.id);
             return (
+              <React.Fragment key={item.id}>
+              {index === Math.ceil(dock.length / 2) && <div className="w-6 h-px bg-zinc-200 dark:bg-[#333333] my-1" />}
               <button
-                key={item.id}
                 type="button"
                 title={item.label}
                 aria-label={`Open ${item.label}`}
                 aria-pressed={active}
                 onClick={() => (active ? closePane(item.id) : openPane(item))}
-                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors cursor-pointer ${
+                className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors cursor-pointer ${
                   active
                     ? 'bg-[#0494f4]/12 ring-1 ring-[#0494f4]/30'
                     : 'hover:bg-zinc-100 dark:hover:bg-[#2a2a2a]'
                 }`}
               >
-                <AppGlyph item={item} />
+                <AppGlyph item={item} className="w-9 h-9" />
               </button>
+              </React.Fragment>
             );
           })}
         </aside>
