@@ -1,6 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Search, ArrowUpRight, Download, Globe, Smartphone, LayoutGrid, Star, Settings, ChevronDown, Fingerprint, Mail, HardDrive, Video, ShoppingBag, Bot, GitBranch } from 'lucide-react';
-import { AppShell, RAIL_ITEMS } from '../components/AppShell';
+import {
+  Search, ArrowUpRight, Download, Globe, Smartphone, LayoutGrid, Star, Settings, ChevronDown,
+  Fingerprint, Mail, HardDrive, Video, ShoppingBag, Bot, GitBranch,
+} from 'lucide-react';
+import { AppShell } from '../components/AppShell';
 import { PUBLIC_APPS, appHref } from '../data/apps';
 import type { AppEntry } from '../data/apps';
 import { useGothwadSession } from '../hooks/useGothwadSession';
@@ -8,6 +11,16 @@ import { ACCOUNTS_WEB_ORIGIN } from '../config/brand';
 import { openGothwadAccountMenu } from '../lib/accountMenuWidget';
 
 type Filter = 'all' | 'web' | 'android';
+
+const DOCK = [
+  { id: 'accounts', label: 'Bansify Accounts', icon: Fingerprint, url: 'https://accounts.bansify.com', logoSrc: 'https://accounts.bansify.com/icon-192.png' },
+  { id: 'mail', label: 'Bansify Mail', icon: Mail, url: 'https://mail.bansify.com', logoSrc: 'https://mail.bansify.com/icon-192.png' },
+  { id: 'drive', label: 'Bansify Drive', icon: HardDrive, url: 'https://drive.bansify.com', logoSrc: 'https://drive.bansify.com/icon-192.png' },
+  { id: 'meet', label: 'Bansify Meet', icon: Video, url: 'https://meet.bansify.com', logoSrc: 'https://meet.bansify.com/icon-192.png' },
+  { id: 'pay', label: 'Bansify Pay', icon: ShoppingBag, url: 'https://pay.bansify.com', logoSrc: 'https://pay.bansify.com/icon-192.png' },
+  { id: 'ai', label: 'Bansify AI', icon: Bot, url: 'https://ai.bansify.com', logoSrc: 'https://ai.bansify.com/icon-192.png' },
+  { id: 'gitplus', label: 'GitPlus', icon: GitBranch, url: 'https://gitplus.bansify.com', logoSrc: 'https://gitplus.bansify.com/icon-192.png' },
+];
 
 const AppLogo: React.FC<{ app: AppEntry; size?: number }> = ({ app, size = 40 }) => {
   const [failed, setFailed] = useState(false);
@@ -17,7 +30,7 @@ const AppLogo: React.FC<{ app: AppEntry; size?: number }> = ({ app, size = 40 })
     return (
       <img
         src={app.logoSrc}
-        alt={`${app.name} logo`}
+        alt=""
         style={px}
         loading="lazy"
         onError={() => setFailed(true)}
@@ -47,6 +60,7 @@ const AppCard: React.FC<{ app: AppEntry }> = ({ app }) => {
           <a
             href={href}
             title={isAndroid ? 'Download APK' : 'Open'}
+            aria-label={isAndroid ? `Download ${app.name}` : `Open ${app.name}`}
             className="shrink-0 w-8 h-8 rounded-full border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-zinc-500 hover:bg-[#0494f4] hover:text-white hover:border-[#0494f4] transition"
             target="_blank"
             rel="noopener noreferrer"
@@ -94,11 +108,24 @@ const Section: React.FC<{ title: string; count: number; children: React.ReactNod
 export const HomePage: React.FC<{ onNavigate: (p: string) => void }> = ({ onNavigate }) => {
   const [filter, setFilter] = useState<Filter>('all');
   const [q, setQ] = useState('');
-  const [rail, setRail] = useState('apps');
   const searchRef = useRef<HTMLInputElement | null>(null);
   const session = useGothwadSession();
 
-  // The ⌘K hint in the header is real: focus the search field from anywhere.
+  const account = session.data?.user;
+  const signedIn = session.authenticated;
+
+  const openAccountCentre = () => {
+    openGothwadAccountMenu(
+      {
+        user: session.data?.user ?? null,
+        accounts: session.data?.accounts ?? [],
+        activeId: session.data?.activeId ?? null,
+        authuser: session.data?.authuser ?? 0,
+      },
+      { manageAccountHref: `${ACCOUNTS_WEB_ORIGIN}/account` },
+    );
+  };
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
@@ -124,67 +151,30 @@ export const HomePage: React.FC<{ onNavigate: (p: string) => void }> = ({ onNavi
   const androidApps = filtered.filter((a) => a.platform === 'android');
   const featured = PUBLIC_APPS.filter((a) => a.platform === 'web').slice(0, 3);
 
-  const account = session.data?.user;
-  const signedIn = session.authenticated;
-
-  // The same account centre that Mail and Drive open — an overlay, not a redirect.
-  const openAccountCentre = () => {
-    openGothwadAccountMenu(
-      {
-        user: session.data?.user ?? null,
-        accounts: session.data?.accounts ?? [],
-        activeId: session.data?.activeId ?? null,
-        authuser: session.data?.authuser ?? 0,
-      },
-      { manageAccountHref: `${ACCOUNTS_WEB_ORIGIN}/account` },
-    );
-  };
-
-  const railItems = RAIL_ITEMS.map((item) =>
-    item.id === 'home' ? { ...item, id: 'apps' } : item,
-  );
+  const initial = (account?.name || account?.username || '?').slice(0, 1).toUpperCase();
+  const avatar = account?.avatarUrl || account?.avatar_url;
 
   return (
     <AppShell
-      rail={railItems}
-      activeRail={rail}
-      onRailSelect={(id) => {
-        setRail(id);
-        if (id === 'products') onNavigate('products');
-        if (id === 'docs') onNavigate('docs');
-        if (id === 'company') onNavigate('company');
-        if (id === 'settings') onNavigate('settings');
-      }}
-      rightRail={[
-        { id: 'accounts', label: 'Bansify Accounts', icon: Fingerprint, url: 'https://accounts.bansify.com', logoSrc: 'https://accounts.bansify.com/icon-192.png' },
-        { id: 'mail', label: 'Bansify Mail', icon: Mail, url: 'https://mail.bansify.com', logoSrc: 'https://mail.bansify.com/icon-192.png' },
-        { id: 'drive', label: 'Bansify Drive', icon: HardDrive, url: 'https://drive.bansify.com', logoSrc: 'https://drive.bansify.com/icon-192.png' },
-        { id: 'meet', label: 'Bansify Meet', icon: Video, url: 'https://meet.bansify.com', logoSrc: 'https://meet.bansify.com/icon-192.png' },
-        { id: 'pay', label: 'Bansify Pay', icon: ShoppingBag, url: 'https://pay.bansify.com', logoSrc: 'https://pay.bansify.com/icon-192.png' },
-        { id: 'ai', label: 'Bansify AI', icon: Bot, url: 'https://ai.bansify.com', logoSrc: 'https://ai.bansify.com/icon-192.png' },
-        { id: 'gitplus', label: 'GitPlus', icon: GitBranch, url: 'https://gitplus.bansify.com', logoSrc: 'https://gitplus.bansify.com/icon-192.png' },
-      ]}
-      sidebarTitle="Bansify"
+      panelTitle="Bansify"
       navItems={[
         { id: 'all', label: 'All apps', icon: LayoutGrid, badge: String(PUBLIC_APPS.length) },
         { id: 'web', label: 'Website', icon: Globe, badge: String(PUBLIC_APPS.filter((a) => a.platform === 'web').length) },
         { id: 'android', label: 'Android', icon: Smartphone, badge: String(PUBLIC_APPS.filter((a) => a.platform === 'android').length) },
         { id: 'featured', label: 'Featured', icon: Star },
+        { id: 'products', label: 'Products', icon: LayoutGrid },
+        { id: 'docs', label: 'Docs', icon: Globe },
         { id: 'account', label: 'Account centre', icon: Settings },
       ]}
       activeNav={filter}
       onNavSelect={(id) => {
-        if (id === 'account') {
-          openAccountCentre();
-          return;
-        }
-        if (id === 'featured') {
-          setFilter('all');
-          return;
-        }
+        if (id === 'account') return openAccountCentre();
+        if (id === 'products') return onNavigate('products');
+        if (id === 'docs') return onNavigate('docs');
+        if (id === 'featured') return setFilter('all');
         setFilter(id as Filter);
       }}
-      sidebarFooter={
+      panelFooter={
         <div className="text-[11px] text-zinc-500 dark:text-zinc-500 leading-relaxed">
           {signedIn && account ? (
             <>
@@ -200,9 +190,20 @@ export const HomePage: React.FC<{ onNavigate: (p: string) => void }> = ({ onNavi
           )}
         </div>
       }
+      dock={DOCK}
+      profile={
+        <button
+          type="button"
+          onClick={openAccountCentre}
+          title={signedIn && account ? `${account.name || account.username} — account centre` : 'Sign in with Bansify'}
+          aria-label="Account centre"
+          className="w-9 h-9 rounded-full overflow-hidden ring-1 ring-zinc-200 dark:ring-zinc-700 bg-[#0494f4] text-white flex items-center justify-center text-xs font-bold cursor-pointer"
+        >
+          {avatar ? <img src={avatar as string} alt="" className="w-full h-full object-cover" /> : signedIn && account ? initial : <span className="text-[10px]">In</span>}
+        </button>
+      }
       headerAction={
-        <div className="flex items-center gap-2 w-full">
-          {/* Search with a keyboard hint */}
+        <div className="flex items-center gap-2">
           <div className="flex items-center gap-2 h-9 px-3 rounded-full border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 focus-within:border-[#0494f4]/40 transition">
             <Search className="w-4 h-4 text-zinc-400" />
             <input
@@ -210,51 +211,26 @@ export const HomePage: React.FC<{ onNavigate: (p: string) => void }> = ({ onNavi
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="Search apps"
-              className="w-32 sm:w-52 bg-transparent outline-none text-sm text-zinc-900 dark:text-white placeholder:text-zinc-400"
+              className="w-32 sm:w-56 bg-transparent outline-none text-sm text-zinc-900 dark:text-white placeholder:text-zinc-400"
             />
             <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded border border-zinc-200 dark:border-zinc-700 text-[10px] text-zinc-400 font-sans">
               ⌘K
             </kbd>
           </div>
-
-          {/* Profile sits beside search — no redirect button */}
           <button
             type="button"
             onClick={openAccountCentre}
-            title={signedIn ? 'Open account centre' : 'Sign in with Bansify'}
-            className="ml-auto inline-flex items-center gap-2 h-9 pl-1.5 pr-3 rounded-full border border-zinc-200 dark:border-zinc-800 hover:border-[#0494f4]/40 transition cursor-pointer"
+            className="inline-flex items-center gap-1.5 h-9 px-3 rounded-full border border-zinc-200 dark:border-zinc-800 hover:border-[#0494f4]/40 transition cursor-pointer"
           >
-            <span className="w-6 h-6 rounded-full overflow-hidden bg-[#0494f4] text-white flex items-center justify-center text-[10px] font-bold shrink-0">
-              {(account?.avatarUrl || account?.avatar_url) ? (
-                <img src={(account.avatarUrl || account.avatar_url) as string} alt="" className="w-full h-full object-cover" />
-              ) : signedIn && account ? (
-                (account.name || account.username || '?').slice(0, 1).toUpperCase()
-              ) : (
-                'In'
-              )}
+            <span className="w-6 h-6 rounded-full overflow-hidden bg-[#0494f4] text-white flex items-center justify-center text-[10px] font-bold">
+              {avatar ? <img src={avatar as string} alt="" className="w-full h-full object-cover" /> : signedIn && account ? initial : 'In'}
             </span>
             <span className="hidden sm:block text-xs font-medium text-zinc-700 dark:text-zinc-300 max-w-[120px] truncate">
-              {signedIn && account ? (account.name || account.username) : 'Sign in'}
+              {signedIn && account ? account.name || account.username : 'Sign in'}
             </span>
             <ChevronDown className="w-3.5 h-3.5 text-zinc-400" />
           </button>
         </div>
-      }
-      accountSlot={
-        <button
-          type="button"
-          onClick={openAccountCentre}
-          title={signedIn ? 'Your Bansify account' : 'Sign in'}
-          className="w-9 h-9 rounded-full overflow-hidden ring-1 ring-zinc-200 dark:ring-zinc-700 bg-[#0494f4] text-white flex items-center justify-center text-xs font-bold cursor-pointer"
-        >
-          {(account?.avatarUrl || account?.avatar_url) ? (
-            <img src={(account.avatarUrl || account.avatar_url) as string} alt="" className="w-full h-full object-cover" />
-          ) : signedIn && account ? (
-            (account.name || account.username || '?').slice(0, 1).toUpperCase()
-          ) : (
-            <span className="text-[10px]">In</span>
-          )}
-        </button>
       }
     >
       <div className="flex items-center gap-2 flex-wrap">
