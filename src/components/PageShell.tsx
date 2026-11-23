@@ -4,14 +4,8 @@ import { AppShell } from './AppShell';
 import { useGothwadSession } from '../hooks/useGothwadSession';
 import { openGothwadAccountMenu } from '../lib/accountMenuWidget';
 import { ACCOUNTS_WEB_ORIGIN } from '../config/brand';
+import { APP_DOCK } from '../data/dock';
 
-const DOCK = [
-  { id: 'accounts', label: 'Bansify Accounts', icon: Settings, url: 'https://accounts.bansify.com', logoSrc: 'https://accounts.bansify.com/icon-192.png' },
-  { id: 'mail', label: 'Bansify Mail', icon: Mail, url: 'https://mail.bansify.com', logoSrc: 'https://mail.bansify.com/icon-192.png' },
-  { id: 'drive', label: 'Bansify Drive', icon: Boxes, url: 'https://drive.bansify.com', logoSrc: 'https://drive.bansify.com/icon-192.png' },
-  { id: 'meet', label: 'Bansify Meet', icon: BookOpen, url: 'https://meet.bansify.com', logoSrc: 'https://meet.bansify.com/icon-192.png' },
-  { id: 'pay', label: 'Bansify Pay', icon: Building2, url: 'https://pay.bansify.com', logoSrc: 'https://pay.bansify.com/icon-192.png' },
-];
 
 export const PageShell: React.FC<{
   activePage: string;
@@ -67,7 +61,7 @@ export const PageShell: React.FC<{
           )}
         </div>
       }
-      dock={DOCK}
+      dock={APP_DOCK}
       profile={
         <button
           type="button"
