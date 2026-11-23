@@ -57,7 +57,7 @@ export const AppShell: React.FC<AppShellProps> = ({
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   return (
-    <div className="flex h-[calc(100vh-3.5rem)] w-full overflow-hidden bg-white dark:bg-zinc-950">
+    <div className="flex h-[100dvh] w-full overflow-hidden bg-white dark:bg-zinc-950">
       {/* Icon rail */}
       <aside className="hidden sm:flex w-14 shrink-0 flex-col items-center gap-1 border-r border-zinc-200 dark:border-zinc-800 py-3">
         {(rail ?? []).map((item) => {

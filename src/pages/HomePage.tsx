@@ -5,6 +5,7 @@ import { PUBLIC_APPS, appHref } from '../data/apps';
 import type { AppEntry } from '../data/apps';
 import { useGothwadSession } from '../hooks/useGothwadSession';
 import { ACCOUNTS_WEB_ORIGIN } from '../config/brand';
+import { openGothwadAccountMenu } from '../lib/accountMenuWidget';
 
 type Filter = 'all' | 'web' | 'android';
 
@@ -47,7 +48,9 @@ const AppCard: React.FC<{ app: AppEntry }> = ({ app }) => {
             href={href}
             title={isAndroid ? 'Download APK' : 'Open'}
             className="shrink-0 w-8 h-8 rounded-full border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-zinc-500 hover:bg-[#0494f4] hover:text-white hover:border-[#0494f4] transition"
-            {...(isAndroid ? { download: '' } : { rel: 'noopener' })}
+            target="_blank"
+            rel="noopener noreferrer"
+            {...(isAndroid ? { download: '' } : {})}
           >
             {isAndroid ? <Download className="w-4 h-4" /> : <ArrowUpRight className="w-4 h-4" />}
           </a>
@@ -66,7 +69,9 @@ const AppCard: React.FC<{ app: AppEntry }> = ({ app }) => {
           <a
             href={href}
             className="ml-auto text-xs font-semibold text-[#0494f4] hover:underline"
-            {...(isAndroid ? { download: '' } : { rel: 'noopener' })}
+            target="_blank"
+            rel="noopener noreferrer"
+            {...(isAndroid ? { download: '' } : {})}
           >
             {isAndroid ? 'Download' : 'Open'}
           </a>
@@ -122,6 +127,19 @@ export const HomePage: React.FC<{ onNavigate: (p: string) => void }> = ({ onNavi
   const account = session.data?.user;
   const signedIn = session.authenticated;
 
+  // The same account centre that Mail and Drive open — an overlay, not a redirect.
+  const openAccountCentre = () => {
+    openGothwadAccountMenu(
+      {
+        user: session.data?.user ?? null,
+        accounts: session.data?.accounts ?? [],
+        activeId: session.data?.activeId ?? null,
+        authuser: session.data?.authuser ?? 0,
+      },
+      { manageAccountHref: `${ACCOUNTS_WEB_ORIGIN}/account` },
+    );
+  };
+
   const railItems = RAIL_ITEMS.map((item) =>
     item.id === 'home' ? { ...item, id: 'apps' } : item,
   );
@@ -148,7 +166,7 @@ export const HomePage: React.FC<{ onNavigate: (p: string) => void }> = ({ onNavi
       activeNav={filter}
       onNavSelect={(id) => {
         if (id === 'account') {
-          window.location.href = ACCOUNTS_WEB_ORIGIN;
+          openAccountCentre();
           return;
         }
         if (id === 'featured') {
@@ -165,9 +183,9 @@ export const HomePage: React.FC<{ onNavigate: (p: string) => void }> = ({ onNavi
             </>
           ) : (
             <>
-              <a href={ACCOUNTS_WEB_ORIGIN} className="text-[#0494f4] hover:underline font-medium">
+              <button type="button" onClick={openAccountCentre} className="text-[#0494f4] hover:underline font-medium cursor-pointer">
                 Sign in with Bansify
-              </a>{' '}
+              </button>{' '}
               to sync across apps
             </>
           )}
@@ -194,18 +212,24 @@ export const HomePage: React.FC<{ onNavigate: (p: string) => void }> = ({ onNavi
           <div className="hidden lg:flex items-center gap-1.5 ml-1">
             <a
               href="https://mail.bansify.com/?compose=1"
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 h-9 px-3 rounded-full border border-zinc-200 dark:border-zinc-800 text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:border-[#0494f4]/40 hover:text-[#0494f4] transition"
             >
               <PenLine className="w-3.5 h-3.5" /> Compose
             </a>
             <a
               href="https://meet.bansify.com/"
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 h-9 px-3 rounded-full border border-zinc-200 dark:border-zinc-800 text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:border-[#0494f4]/40 hover:text-[#0494f4] transition"
             >
               <Video className="w-3.5 h-3.5" /> New meeting
             </a>
             <a
               href="https://drive.bansify.com/"
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 h-9 px-3 rounded-full border border-zinc-200 dark:border-zinc-800 text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:border-[#0494f4]/40 hover:text-[#0494f4] transition"
             >
               <Upload className="w-3.5 h-3.5" /> Upload
@@ -217,10 +241,11 @@ export const HomePage: React.FC<{ onNavigate: (p: string) => void }> = ({ onNavi
           </span>
 
           {/* Profile sits beside search — no redirect button */}
-          <a
-            href={ACCOUNTS_WEB_ORIGIN}
+          <button
+            type="button"
+            onClick={openAccountCentre}
             title={signedIn ? 'Open account centre' : 'Sign in with Bansify'}
-            className="ml-auto inline-flex items-center gap-2 h-9 pl-1.5 pr-3 rounded-full border border-zinc-200 dark:border-zinc-800 hover:border-[#0494f4]/40 transition"
+            className="ml-auto inline-flex items-center gap-2 h-9 pl-1.5 pr-3 rounded-full border border-zinc-200 dark:border-zinc-800 hover:border-[#0494f4]/40 transition cursor-pointer"
           >
             <span className="w-6 h-6 rounded-full overflow-hidden bg-[#0494f4] text-white flex items-center justify-center text-[10px] font-bold shrink-0">
               {(account?.avatarUrl || account?.avatar_url) ? (
@@ -235,14 +260,15 @@ export const HomePage: React.FC<{ onNavigate: (p: string) => void }> = ({ onNavi
               {signedIn && account ? (account.name || account.username) : 'Sign in'}
             </span>
             <ChevronDown className="w-3.5 h-3.5 text-zinc-400" />
-          </a>
+          </button>
         </div>
       }
       accountSlot={
-        <a
-          href={ACCOUNTS_WEB_ORIGIN}
+        <button
+          type="button"
+          onClick={openAccountCentre}
           title={signedIn ? 'Your Bansify account' : 'Sign in'}
-          className="w-9 h-9 rounded-full overflow-hidden ring-1 ring-zinc-200 dark:ring-zinc-700 bg-[#0494f4] text-white flex items-center justify-center text-xs font-bold"
+          className="w-9 h-9 rounded-full overflow-hidden ring-1 ring-zinc-200 dark:ring-zinc-700 bg-[#0494f4] text-white flex items-center justify-center text-xs font-bold cursor-pointer"
         >
           {(account?.avatarUrl || account?.avatar_url) ? (
             <img src={(account.avatarUrl || account.avatar_url) as string} alt="" className="w-full h-full object-cover" />
@@ -251,7 +277,7 @@ export const HomePage: React.FC<{ onNavigate: (p: string) => void }> = ({ onNavi
           ) : (
             <span className="text-[10px]">In</span>
           )}
-        </a>
+        </button>
       }
     >
       <div className="flex items-center gap-2 flex-wrap">
@@ -283,7 +309,8 @@ export const HomePage: React.FC<{ onNavigate: (p: string) => void }> = ({ onNavi
               <a
                 key={`f-${app.id}`}
                 href={appHref(app)}
-                rel="noopener"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="rounded-2xl border border-zinc-200 dark:border-zinc-800 p-4 hover:border-[#0494f4]/40 hover:shadow-sm transition"
               >
                 <AppLogo app={app} size={44} />
