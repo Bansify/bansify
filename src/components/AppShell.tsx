@@ -88,7 +88,9 @@ const PanelRow: React.FC<{
       title={item.label}
       aria-label={item.label}
       aria-current={active ? 'page' : undefined}
-      className={`group relative flex items-center h-10 w-full rounded-xl cursor-pointer transition-colors ${
+      className={`group relative flex items-center h-10 rounded-xl cursor-pointer transition-colors ${
+        open ? 'w-full' : 'w-10'
+      } ${
         active ? 'text-[#0494f4]' : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
       }`}
     >
@@ -120,14 +122,15 @@ const PanelRow: React.FC<{
   );
 };
 
-const SectionLabel: React.FC<{ open: boolean; children: React.ReactNode }> = ({ open, children }) =>
-  open ? (
-    <p className="px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-[0.08em] text-zinc-400 dark:text-zinc-500">
-      {children}
-    </p>
-  ) : (
-    <div className="w-6 h-px my-2 bg-zinc-200 dark:bg-[#333333]" />
-  );
+const SectionLabel: React.FC<{ open: boolean; children: React.ReactNode }> = ({ open, children }) => (
+  <div className={`flex items-center h-7 ${open ? 'px-3' : 'justify-center w-10'}`}>
+    {open ? (
+      <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-zinc-400 dark:text-zinc-500">{children}</p>
+    ) : (
+      <span className="block w-6 h-px bg-zinc-200 dark:bg-[#333333]" />
+    )}
+  </div>
+);
 
 export const AppShell: React.FC<AppShellProps> = ({
   navItems,
@@ -384,7 +387,7 @@ export const AppShell: React.FC<AppShellProps> = ({
 
       {dock && dock.length > 0 && (
         <aside
-          className="hidden lg:flex w-16 shrink-0 flex-col items-center gap-0 rounded-2xl border border-zinc-200 bg-white py-2 dark:border-[#333333] dark:bg-[#2a2a2a]"
+          className="hidden lg:flex w-16 shrink-0 flex-col items-center gap-1.5 rounded-2xl border border-zinc-200 bg-white py-3 dark:border-[#333333] dark:bg-[#2a2a2a]"
           aria-label="Bansify apps"
         >
           <button type="button" onClick={onProfileClick} title={profileEmail || 'Account'} aria-label="Account" className="mb-1 cursor-pointer">
