@@ -64,25 +64,28 @@ const HEROES = [
 ];
 
 
-const AppLogo: React.FC<{ app: AppEntry; size?: number }> = ({ app, size = 40 }) => {
+const AppLogo: React.FC<{ app: AppEntry; size?: number }> = ({ app, size = 44 }) => {
   const [failed, setFailed] = useState(false);
   const Icon = app.icon;
   const px = { width: size, height: size };
-  if (app.logoSrc && !failed) {
-    return (
-      <img
-        src={app.logoSrc}
-        alt=""
-        style={px}
-        loading="lazy"
-        onError={() => setFailed(true)}
-        className="rounded-xl object-contain bg-white ring-1 ring-zinc-200 dark:ring-zinc-800 shrink-0"
-      />
-    );
-  }
+  // One square tile for every app: solid brand blue, softly rounded corners. The artwork
+  // fills the tile; an app without artwork falls back to its glyph in white.
   return (
-    <div style={px} className="rounded-xl bg-[#0494f4] flex items-center justify-center shrink-0">
-      <Icon className="w-5 h-5 text-white" />
+    <div
+      style={px}
+      className="rounded-[12px] bg-[#0494f4] overflow-hidden flex items-center justify-center shrink-0 ring-1 ring-black/5 dark:ring-white/10"
+    >
+      {app.logoSrc && !failed ? (
+        <img
+          src={app.logoSrc}
+          alt=""
+          loading="lazy"
+          onError={() => setFailed(true)}
+          className="w-full h-full object-cover"
+        />
+      ) : (
+        <Icon className="w-1/2 h-1/2 text-white" strokeWidth={1.75} />
+      )}
     </div>
   );
 };
