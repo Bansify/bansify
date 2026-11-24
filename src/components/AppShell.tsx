@@ -46,6 +46,31 @@ interface AppShellProps {
   children: React.ReactNode;
 }
 
+/** Square brand-blue tile used by the dock — same shape and colour as the app list. */
+const DockTile: React.FC<{ item: RailItem; active?: boolean }> = ({ item, active }) => {
+  const [failed, setFailed] = useState(false);
+  const Icon = item.icon;
+  return (
+    <span
+      className={`w-11 h-11 rounded-[12px] bg-[#0494f4] overflow-hidden flex items-center justify-center ring-1 ring-black/5 dark:ring-white/10 transition group-hover:brightness-110 ${
+        active ? 'outline outline-2 outline-offset-2 outline-[#0494f4]/60' : ''
+      }`}
+    >
+      {item.logoSrc && !failed ? (
+        <img
+          src={item.logoSrc}
+          alt=""
+          loading="lazy"
+          onError={() => setFailed(true)}
+          className="w-full h-full object-cover"
+        />
+      ) : (
+        <Icon className="w-1/2 h-1/2 text-white" strokeWidth={1.75} />
+      )}
+    </span>
+  );
+};
+
 const AppGlyph: React.FC<{ item: RailItem; className?: string }> = ({ item, className = 'w-5 h-5' }) => {
   const [failed, setFailed] = useState(false);
   const Icon = item.icon;
@@ -374,13 +399,9 @@ export const AppShell: React.FC<AppShellProps> = ({
                 onClick={() => openPane(item)}
                 title={item.label}
                 aria-label={`Open ${item.label}`}
-                className={`w-10 h-10 rounded-xl flex items-center justify-center cursor-pointer transition-colors ${
-                  panes.some((p) => p.id === item.id)
-                    ? 'bg-[#0494f4]/12'
-                    : 'hover:bg-zinc-100 dark:hover:bg-[#333333]'
-                }`}
+                className="group cursor-pointer rounded-[12px]"
               >
-                <AppGlyph item={item} />
+                <DockTile item={item} active={panes.some((p) => p.id === item.id)} />
               </button>
             </React.Fragment>
           ))}
