@@ -91,16 +91,12 @@ const PanelRow: React.FC<{
       className={`group relative flex items-center h-10 rounded-xl cursor-pointer transition-colors ${
         open ? 'w-full' : 'w-10'
       } ${
-        active ? 'text-[#0494f4]' : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
+        active
+          ? 'bg-[#0494f4] text-white shadow-sm shadow-[#0494f4]/25'
+          : 'bg-zinc-100/80 text-zinc-900 hover:bg-zinc-200/80 dark:bg-[#303030] dark:text-zinc-100 dark:hover:bg-[#3a3a3a]'
       }`}
     >
-      <span
-        className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
-          active
-            ? 'bg-[#0494f4]/12'
-            : 'group-hover:bg-zinc-100 dark:group-hover:bg-[#333333]'
-        }`}
-      >
+      <span className="w-10 h-10 flex items-center justify-center shrink-0">
         {Icon && <Icon className="w-[18px] h-[18px]" strokeWidth={1.75} />}
       </span>
 
@@ -110,7 +106,7 @@ const PanelRow: React.FC<{
           {item.badge && (
             <span
               className={`ml-auto mr-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                active ? 'bg-[#0494f4] text-white' : 'bg-zinc-100 dark:bg-[#333333] text-zinc-500 dark:text-zinc-400'
+                active ? 'bg-white/25 text-white' : 'bg-white text-zinc-600 dark:bg-[#212121] dark:text-zinc-300'
               }`}
             >
               {item.badge}
@@ -176,7 +172,16 @@ export const AppShell: React.FC<AppShellProps> = ({
         <div className={`flex items-center h-16 shrink-0 ${isOpen ? 'gap-2.5 px-3' : 'justify-center px-0'}`}>
           {isOpen ? (
             <>
-              <BrandTile src={brandLogoSrc} name={brandName} />
+              <button
+                type="button"
+                onClick={() => setOpen((v) => !v)}
+                title="Collapse panel"
+                aria-label="Collapse panel"
+                aria-expanded={open}
+                className="rounded-[10px] cursor-pointer shrink-0"
+              >
+                <BrandTile src={brandLogoSrc} name={brandName} />
+              </button>
               <span className="min-w-0 text-[16px] font-black tracking-tight leading-none truncate">
                 <span className="text-[#0494f4]">{brandName}</span>{' '}
                 <span className="text-zinc-900 dark:text-zinc-100">Ecosystem</span>
@@ -185,9 +190,10 @@ export const AppShell: React.FC<AppShellProps> = ({
           ) : (
             <button
               type="button"
-              onClick={() => setOpen(true)}
-              title={`Open ${brandName}`}
-              aria-label="Expand panel"
+              onClick={() => setOpen((v) => !v)}
+              title={open ? 'Collapse panel' : 'Expand panel'}
+              aria-label={open ? 'Collapse panel' : 'Expand panel'}
+              aria-expanded={open}
               className="rounded-[10px] cursor-pointer"
             >
               <BrandTile src={brandLogoSrc} name={brandName} />
@@ -225,6 +231,20 @@ export const AppShell: React.FC<AppShellProps> = ({
         {/* footer */}
         <div className="shrink-0">
           <div className={`mx-3 h-px bg-zinc-200 dark:bg-[#333333] ${isOpen ? '' : 'mx-2'}`} />
+
+          {!isOpen && (
+            <div className="flex justify-center pt-2">
+              <button
+                type="button"
+                onClick={() => setOpen(true)}
+                title="Expand panel"
+                aria-label="Expand panel"
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-400 hover:bg-zinc-100 dark:hover:bg-[#333333] cursor-pointer"
+              >
+                <ChevronRight className="w-4 h-4" strokeWidth={1.75} />
+              </button>
+            </div>
+          )}
 
           <button
             type="button"
@@ -269,19 +289,6 @@ export const AppShell: React.FC<AppShellProps> = ({
             )}
           </button>
 
-          {!isOpen && (
-            <div className="flex justify-center pb-2">
-              <button
-                type="button"
-                onClick={() => setOpen(true)}
-                title="Expand panel"
-                aria-label="Expand panel"
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-400 hover:bg-zinc-100 dark:hover:bg-[#333333] cursor-pointer"
-              >
-                <ChevronRight className="w-4 h-4" strokeWidth={1.75} />
-              </button>
-            </div>
-          )}
         </div>
       </div>
     );
