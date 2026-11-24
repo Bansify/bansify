@@ -52,7 +52,7 @@ const DockTile: React.FC<{ item: RailItem; active?: boolean }> = ({ item, active
   const Icon = item.icon;
   return (
     <span
-      className={`w-11 h-11 rounded-[12px] bg-[#0494f4] overflow-hidden flex items-center justify-center ring-1 ring-black/5 dark:ring-white/10 transition group-hover:brightness-110 ${
+      className={`w-[36px] h-[36px] rounded-[10px] bg-[#0494f4] overflow-hidden flex items-center justify-center ring-1 ring-black/5 dark:ring-white/10 transition group-hover:brightness-110 ${
         active ? 'outline outline-2 outline-offset-2 outline-[#0494f4]/60' : ''
       }`}
     >
