@@ -198,6 +198,22 @@ export const HomePage: React.FC<{ onNavigate: (p: string) => void }> = ({ onNavi
 
   return (
     <AppShell
+      title={SITE_NAV.find((n) => n.id === filter)?.label ?? 'Home'}
+      searchSlot={
+        <div className="flex items-center gap-2 h-9 px-3 rounded-full border border-zinc-200 dark:border-[#333333] focus-within:border-[#0494f4]/40 transition w-full max-w-md">
+          <Search className="w-4 h-4 text-zinc-400" strokeWidth={1.75} />
+          <input
+            ref={searchRef}
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search apps"
+            className="flex-1 min-w-0 bg-transparent outline-none text-[13px] text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400"
+          />
+          <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded border border-zinc-200 dark:border-[#333333] text-[10px] text-zinc-400">
+            ⌘K
+          </kbd>
+        </div>
+      }
       brandName="Bansify"
       brandLogoSrc="/assets/brand/logo.png"
       navItems={SITE_NAV}
