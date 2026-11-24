@@ -122,13 +122,9 @@ const PanelRow: React.FC<{
   );
 };
 
-const SectionLabel: React.FC<{ open: boolean; children: React.ReactNode }> = ({ open, children }) => (
+const SectionRule: React.FC<{ open: boolean }> = ({ open }) => (
   <div className={`flex items-center h-7 ${open ? 'px-3' : 'justify-center w-10'}`}>
-    {open ? (
-      <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-zinc-400 dark:text-zinc-500">{children}</p>
-    ) : (
-      <span className="block w-6 h-px bg-zinc-200 dark:bg-[#333333]" />
-    )}
+    <span className={`block h-px bg-zinc-200 dark:bg-[#333333] ${open ? 'w-full' : 'w-6'}`} />
   </div>
 );
 
@@ -174,7 +170,7 @@ export const AppShell: React.FC<AppShellProps> = ({
       <div
         className={`flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-[#333333] dark:bg-[#2a2a2a] ${
           isOpen ? 'w-[260px]' : 'w-16'
-        } ${variant === 'desktop' ? 'transition-[width] duration-200 ease-out' : ''}`}
+        }`}
       >
         {/* header */}
         <div className={`flex items-center h-16 shrink-0 ${isOpen ? 'gap-2.5 px-3' : 'justify-center px-0'}`}>
@@ -220,7 +216,7 @@ export const AppShell: React.FC<AppShellProps> = ({
           {browse.map((item) => (
             <PanelRow key={item.id} item={item} active={activeNav === item.id} open={isOpen} onClick={() => onNavSelect(item.id)} />
           ))}
-          <SectionLabel open={isOpen}>Ecosystem</SectionLabel>
+          <SectionRule open={isOpen} />
           {ecosystem.map((item) => (
             <PanelRow key={item.id} item={item} active={activeNav === item.id} open={isOpen} onClick={() => onNavSelect(item.id)} />
           ))}
@@ -228,24 +224,7 @@ export const AppShell: React.FC<AppShellProps> = ({
 
         {/* footer */}
         <div className="shrink-0">
-          {isOpen && panelFooter && (
-            <div className="px-4 pb-2 text-[11px] leading-relaxed text-zinc-500">{panelFooter}</div>
-          )}
           <div className={`mx-3 h-px bg-zinc-200 dark:bg-[#333333] ${isOpen ? '' : 'mx-2'}`} />
-
-          {isOpen && (
-            <div className="flex items-center gap-1 px-3 pt-2">
-              <button
-                type="button"
-                onClick={toggleTheme}
-                title={isDark ? 'Switch to light' : 'Switch to dark'}
-                aria-label="Toggle theme"
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-[#333333] cursor-pointer"
-              >
-                {isDark ? <Sun className="w-4 h-4" strokeWidth={1.75} /> : <Moon className="w-4 h-4" strokeWidth={1.75} />}
-              </button>
-            </div>
-          )}
 
           <button
             type="button"
@@ -265,6 +244,27 @@ export const AppShell: React.FC<AppShellProps> = ({
                   </span>
                 )}
                 {profileEmail && <span className="block text-[11px] text-zinc-500 truncate">{profileEmail}</span>}
+              </span>
+            )}
+            {isOpen && (
+              <span
+                role="button"
+                tabIndex={0}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleTheme();
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.stopPropagation();
+                    toggleTheme();
+                  }
+                }}
+                title={isDark ? 'Switch to light' : 'Switch to dark'}
+                aria-label="Toggle theme"
+                className="ml-auto w-8 h-8 rounded-lg flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-[#333333] cursor-pointer shrink-0"
+              >
+                {isDark ? <Sun className="w-4 h-4" strokeWidth={1.75} /> : <Moon className="w-4 h-4" strokeWidth={1.75} />}
               </span>
             )}
           </button>
