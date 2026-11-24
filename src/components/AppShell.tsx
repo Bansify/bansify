@@ -11,6 +11,7 @@ import {
   Moon,
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import { NOTIFICATIONS, markNotificationsRead, readNotificationIds } from '../data/notifications';
 
 export interface ShellNavItem {
   id: string;
@@ -118,6 +119,9 @@ export const AppShell: React.FC<AppShellProps> = ({
 }) => {
   const { isDark, toggleTheme } = useTheme();
   const [navOpen, setNavOpen] = useState(true);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [readIds, setReadIds] = useState<string[]>(() => readNotificationIds());
+  const hasUnread = NOTIFICATIONS.some((n) => !readIds.includes(n.id));
   const [mobileNav, setMobileNav] = useState(false);
   const [panes, setPanes] = useState<RailItem[]>([]);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
@@ -142,11 +146,11 @@ export const AppShell: React.FC<AppShellProps> = ({
       className="flex h-full w-60 shrink-0 flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-[#333333] dark:bg-[#2a2a2a]"
       aria-label="Navigation"
     >
-      <div className="flex items-center gap-2.5 h-14 px-3 shrink-0">
+      <div className="flex items-center gap-2.5 h-16 px-3 shrink-0">
         <BrandTile src={brandLogoSrc} name={brandName} />
-        <span className="min-w-0 leading-tight">
-          <span className="block text-[14px] font-black tracking-tight text-[#0494f4] truncate">{brandName}</span>
-          <span className="block text-[11px] font-semibold text-zinc-900 dark:text-zinc-100 truncate">Ecosystem</span>
+        <span className="min-w-0 text-[17px] font-black tracking-tight leading-none truncate">
+          <span className="text-[#0494f4]">{brandName}</span>{' '}
+          <span className="text-zinc-900 dark:text-zinc-100">Ecosystem</span>
         </span>
         <button
           type="button"
@@ -159,7 +163,7 @@ export const AppShell: React.FC<AppShellProps> = ({
         </button>
       </div>
 
-      <nav className="px-1 space-y-0.5 overflow-y-auto">
+      <nav className="px-3 space-y-0.5 overflow-y-auto">
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = activeNav === item.id;
@@ -169,15 +173,17 @@ export const AppShell: React.FC<AppShellProps> = ({
               type="button"
               onClick={() => onNavSelect(item.id)}
               aria-current={active ? 'page' : undefined}
-              className={`relative w-full flex items-center gap-2.5 px-2 py-2 rounded-xl text-[13px] transition-colors cursor-pointer ${
+              className={`relative w-full flex items-center gap-1 h-10 pr-2 rounded-xl text-[13px] transition-colors cursor-pointer ${
                 active
                   ? 'bg-[#0494f4]/12 text-[#0494f4] font-semibold'
                   : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-[#333333]'
               }`}
             >
               {active && <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-[#0494f4]" />}
-              {Icon && <Icon className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />}
-              <span className="truncate">{item.label}</span>
+              <span className="w-10 h-10 flex items-center justify-center shrink-0">
+                {Icon && <Icon className="w-[18px] h-[18px]" strokeWidth={1.75} />}
+              </span>
+              <span className="truncate text-[13px]">{item.label}</span>
               {item.badge && (
                 <span className="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-zinc-100 dark:bg-[#333333] text-zinc-500 dark:text-zinc-400">
                   {item.badge}
@@ -273,11 +279,27 @@ export const AppShell: React.FC<AppShellProps> = ({
           </button>
           <button
             type="button"
+            onClick={() => {
+              setNotifOpen((v) => !v);
+              if (!notifOpen) {
+                const ids = NOTIFICATIONS.map((n) => n.id);
+                setReadIds(ids);
+                markNotificationsRead(ids);
+              }
+            }}
             title="Notifications"
-            aria-label="Notifications"
-            className="w-10 h-10 rounded-xl flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-[#333333] cursor-pointer"
+            aria-label={hasUnread ? 'Notifications (unread)' : 'Notifications'}
+            aria-expanded={notifOpen}
+            className={`relative w-10 h-10 rounded-xl flex items-center justify-center cursor-pointer ${
+              notifOpen
+                ? 'bg-[#0494f4]/12 text-[#0494f4]'
+                : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-[#333333]'
+            }`}
           >
             <Bell className="w-[18px] h-[18px]" strokeWidth={1.75} />
+            {hasUnread && (
+              <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#e5484d] ring-2 ring-white dark:ring-[#2a2a2a]" />
+            )}
           </button>
           <button
             type="button"
@@ -387,6 +409,46 @@ export const AppShell: React.FC<AppShellProps> = ({
           </section>
         );
       })}
+
+      {/* Notifications card — opens from the bell, sits beside the content */}
+      {notifOpen && (
+        <section
+          className="hidden lg:flex w-[340px] shrink-0 flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-[#333333] dark:bg-[#2a2a2a]"
+          aria-label="Notifications"
+        >
+          <div className="flex items-center gap-2 h-16 px-4 shrink-0 border-b border-zinc-200 dark:border-[#333333]">
+            <span className="text-[13px] font-semibold">Notifications</span>
+            <span className="text-[11px] text-zinc-500">{NOTIFICATIONS.length}</span>
+            <button
+              type="button"
+              onClick={() => setNotifOpen(false)}
+              title="Close"
+              aria-label="Close notifications"
+              className="ml-auto w-7 h-7 rounded-lg flex items-center justify-center text-zinc-400 hover:bg-zinc-100 dark:hover:bg-[#333333] cursor-pointer"
+            >
+              <X className="w-4 h-4" strokeWidth={1.75} />
+            </button>
+          </div>
+
+          <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-zinc-200 dark:divide-[#333333]">
+            {NOTIFICATIONS.map((n) => (
+              <article key={n.id} className="flex gap-3 p-4">
+                <span
+                  className={`mt-1 w-2 h-2 rounded-full shrink-0 ${
+                    n.tone === 'green' ? 'bg-emerald-500' : n.tone === 'amber' ? 'bg-amber-500' : 'bg-[#0494f4]'
+                  }`}
+                />
+                <div className="min-w-0">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">{n.app}</p>
+                  <p className="mt-0.5 text-[13px] font-semibold text-zinc-900 dark:text-zinc-100">{n.title}</p>
+                  <p className="mt-0.5 text-[12px] text-zinc-500 leading-relaxed">{n.body}</p>
+                  <p className="mt-1 text-[11px] text-zinc-400">{n.when}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Card 4 — app dock */}
       {dock && dock.length > 0 && (
