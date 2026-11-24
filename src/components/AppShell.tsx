@@ -303,7 +303,11 @@ export const AppShell: React.FC<AppShellProps> = ({
 
   return (
     <div className="flex h-[100dvh] w-full flex-col gap-3 bg-[#f5f6f7] p-3 dark:bg-[#212121]">
-      {/* top row: the search pill and the social card */}
+      <div className="flex flex-1 min-h-0 gap-3">
+      <div className="hidden md:block shrink-0">{panel('desktop')}</div>
+
+      <div className="flex flex-1 min-w-0 flex-col gap-3">
+      {/* above the content card only: the search pill and the social card */}
       <div className="flex gap-3 shrink-0">
         <div className="flex-1 min-w-0 flex items-center h-12 px-4 rounded-full border border-zinc-200 bg-white dark:border-[#333333] dark:bg-[#2a2a2a]">
           {searchSlot}
@@ -320,7 +324,8 @@ export const AppShell: React.FC<AppShellProps> = ({
                 rel="noopener noreferrer"
                 title={`${social.label} · ${social.handle}`}
                 aria-label={`${social.label} ${social.handle}`}
-                className="group w-[34px] h-[34px] rounded-[10px] bg-[#0494f4] flex items-center justify-center shrink-0 ring-1 ring-black/5 dark:ring-white/10 transition group-hover:brightness-110"
+                style={{ backgroundColor: social.color }}
+                className="group w-[34px] h-[34px] rounded-[10px] flex items-center justify-center shrink-0 ring-1 ring-black/10 dark:ring-white/15 transition group-hover:brightness-110"
               >
                 <Icon className="w-4 h-4 text-white" strokeWidth={1.75} />
               </a>
@@ -329,8 +334,6 @@ export const AppShell: React.FC<AppShellProps> = ({
         </div>
       </div>
 
-      <div className="flex flex-1 min-h-0 gap-3">
-      <div className="hidden md:block shrink-0">{panel('desktop')}</div>
 
       {mobileNav && (
         <div className="fixed inset-0 z-50 md:hidden">
@@ -357,6 +360,7 @@ export const AppShell: React.FC<AppShellProps> = ({
         </div>
         <div className="flex-1 min-h-0 overflow-y-auto">{children}</div>
       </main>
+      </div>
 
       {panes.map((item) => {
         const isCollapsed = !!collapsed[item.id];
