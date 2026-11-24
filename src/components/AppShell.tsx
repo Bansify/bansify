@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   Menu,
-  Bell,
   X,
   ArrowUpRight,
   ChevronLeft,
@@ -11,7 +10,6 @@ import {
   Moon,
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
-import { NOTIFICATIONS, markNotificationsRead, readNotificationIds } from '../data/notifications';
 
 export interface ShellNavItem {
   id: string;
@@ -119,9 +117,6 @@ export const AppShell: React.FC<AppShellProps> = ({
 }) => {
   const { isDark, toggleTheme } = useTheme();
   const [navOpen, setNavOpen] = useState(true);
-  const [notifOpen, setNotifOpen] = useState(false);
-  const [readIds, setReadIds] = useState<string[]>(() => readNotificationIds());
-  const hasUnread = NOTIFICATIONS.some((n) => !readIds.includes(n.id));
   const [mobileNav, setMobileNav] = useState(false);
   const [panes, setPanes] = useState<RailItem[]>([]);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
@@ -163,7 +158,7 @@ export const AppShell: React.FC<AppShellProps> = ({
         </button>
       </div>
 
-      <nav className="px-3 space-y-0.5 overflow-y-auto">
+      <nav className="px-3 space-y-0 overflow-y-auto">
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = activeNav === item.id;
@@ -173,14 +168,11 @@ export const AppShell: React.FC<AppShellProps> = ({
               type="button"
               onClick={() => onNavSelect(item.id)}
               aria-current={active ? 'page' : undefined}
-              className={`relative w-full flex items-center gap-1 h-10 pr-2 rounded-xl text-[13px] transition-colors cursor-pointer ${
-                active
-                  ? 'bg-[#0494f4]/12 text-[#0494f4] font-semibold'
-                  : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-[#333333]'
+              className={`relative w-full flex items-center gap-2 h-10 pr-2 rounded-xl text-[13px] transition-colors cursor-pointer ${
+                active ? 'text-[#0494f4] font-semibold' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
               }`}
             >
-              {active && <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-[#0494f4]" />}
-              <span className="w-10 h-10 flex items-center justify-center shrink-0">
+              <span className={`w-10 h-10 rounded-[10px] p-0 flex items-center justify-center shrink-0 ${active ? 'bg-[#0494f4]/12' : ''}`}>
                 {Icon && <Icon className="w-[18px] h-[18px]" strokeWidth={1.75} />}
               </span>
               <span className="truncate text-[13px]">{item.label}</span>
@@ -197,6 +189,17 @@ export const AppShell: React.FC<AppShellProps> = ({
       <div className="mt-auto">
         {panelFooter && <div className="px-4 pb-3 text-[11px] text-zinc-500 leading-relaxed">{panelFooter}</div>}
         <div className="mx-3 h-px bg-zinc-200 dark:bg-[#333333]" />
+        <div className="flex items-center gap-1 px-3 pt-2">
+          <button
+            type="button"
+            onClick={toggleTheme}
+            title={isDark ? 'Switch to light' : 'Switch to dark'}
+            aria-label="Toggle theme"
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-[#333333] cursor-pointer"
+          >
+            {isDark ? <Sun className="w-[16px] h-[16px]" strokeWidth={1.75} /> : <Moon className="w-[16px] h-[16px]" strokeWidth={1.75} />}
+          </button>
+        </div>
         <button
           type="button"
           onClick={onProfileClick}
@@ -204,10 +207,10 @@ export const AppShell: React.FC<AppShellProps> = ({
         >
           {profileAvatarNode}
           <span className="min-w-0">
-            <span className="block text-[13px] font-semibold text-zinc-900 dark:text-zinc-100 truncate">
-              {profileName || 'Sign in'}
-            </span>
-            <span className="block text-[11px] text-zinc-500 truncate">{profileEmail || 'with Bansify'}</span>
+            {profileName && (
+              <span className="block text-[13px] font-semibold text-zinc-900 dark:text-zinc-100 truncate">{profileName}</span>
+            )}
+            {profileEmail && <span className="block text-[11px] text-zinc-500 truncate">{profileEmail}</span>}
           </span>
         </button>
       </div>
@@ -219,7 +222,7 @@ export const AppShell: React.FC<AppShellProps> = ({
       {/* Card 1 — the rail. Collapsed markup is unchanged. */}
       {!navOpen && (
       <aside
-        className="hidden md:flex w-16 shrink-0 flex-col items-center gap-1 rounded-2xl border border-zinc-200 bg-white py-3 dark:border-[#333333] dark:bg-[#2a2a2a]"
+        className="hidden md:flex w-16 shrink-0 flex-col items-center gap-0 rounded-2xl border border-zinc-200 bg-white py-2 dark:border-[#333333] dark:bg-[#2a2a2a]"
         aria-label="Shortcuts"
       >
         <button
@@ -234,7 +237,7 @@ export const AppShell: React.FC<AppShellProps> = ({
         <div className="w-6 h-px bg-zinc-200 dark:bg-[#333333] my-1" />
 
         {/* every destination, scrollable when the list is long */}
-        <div className="flex-1 min-h-0 w-full overflow-y-auto flex flex-col items-center gap-1">
+        <div className="flex-1 min-h-0 w-full overflow-y-auto flex flex-col items-center gap-0">
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = activeNav === item.id;
@@ -246,7 +249,7 @@ export const AppShell: React.FC<AppShellProps> = ({
                 title={item.label}
                 aria-label={item.label}
                 aria-current={active ? 'page' : undefined}
-                className={`w-10 h-10 rounded-xl flex items-center justify-center cursor-pointer transition-colors ${
+                className={`w-10 h-10 rounded-[10px] p-0 flex items-center justify-center cursor-pointer transition-colors ${
                   active
                     ? 'bg-[#0494f4]/12 text-[#0494f4]'
                     : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-[#333333]'
@@ -267,39 +270,6 @@ export const AppShell: React.FC<AppShellProps> = ({
             className="w-10 h-10 rounded-xl flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-[#333333] cursor-pointer"
           >
             {navOpen ? <ChevronLeft className="w-4 h-4" strokeWidth={1.75} /> : <ChevronRight className="w-4 h-4" strokeWidth={1.75} />}
-          </button>
-          <button
-            type="button"
-            onClick={toggleTheme}
-            title={isDark ? 'Switch to light' : 'Switch to dark'}
-            aria-label="Toggle theme"
-            className="w-10 h-10 rounded-xl flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-[#333333] cursor-pointer"
-          >
-            {isDark ? <Sun className="w-[18px] h-[18px]" strokeWidth={1.75} /> : <Moon className="w-[18px] h-[18px]" strokeWidth={1.75} />}
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setNotifOpen((v) => !v);
-              if (!notifOpen) {
-                const ids = NOTIFICATIONS.map((n) => n.id);
-                setReadIds(ids);
-                markNotificationsRead(ids);
-              }
-            }}
-            title="Notifications"
-            aria-label={hasUnread ? 'Notifications (unread)' : 'Notifications'}
-            aria-expanded={notifOpen}
-            className={`relative w-10 h-10 rounded-xl flex items-center justify-center cursor-pointer ${
-              notifOpen
-                ? 'bg-[#0494f4]/12 text-[#0494f4]'
-                : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-[#333333]'
-            }`}
-          >
-            <Bell className="w-[18px] h-[18px]" strokeWidth={1.75} />
-            {hasUnread && (
-              <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#e5484d] ring-2 ring-white dark:ring-[#2a2a2a]" />
-            )}
           </button>
           <button
             type="button"
@@ -409,46 +379,6 @@ export const AppShell: React.FC<AppShellProps> = ({
           </section>
         );
       })}
-
-      {/* Notifications card — opens from the bell, sits beside the content */}
-      {notifOpen && (
-        <section
-          className="hidden lg:flex w-[340px] shrink-0 flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-[#333333] dark:bg-[#2a2a2a]"
-          aria-label="Notifications"
-        >
-          <div className="flex items-center gap-2 h-16 px-4 shrink-0 border-b border-zinc-200 dark:border-[#333333]">
-            <span className="text-[13px] font-semibold">Notifications</span>
-            <span className="text-[11px] text-zinc-500">{NOTIFICATIONS.length}</span>
-            <button
-              type="button"
-              onClick={() => setNotifOpen(false)}
-              title="Close"
-              aria-label="Close notifications"
-              className="ml-auto w-7 h-7 rounded-lg flex items-center justify-center text-zinc-400 hover:bg-zinc-100 dark:hover:bg-[#333333] cursor-pointer"
-            >
-              <X className="w-4 h-4" strokeWidth={1.75} />
-            </button>
-          </div>
-
-          <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-zinc-200 dark:divide-[#333333]">
-            {NOTIFICATIONS.map((n) => (
-              <article key={n.id} className="flex gap-3 p-4">
-                <span
-                  className={`mt-1 w-2 h-2 rounded-full shrink-0 ${
-                    n.tone === 'green' ? 'bg-emerald-500' : n.tone === 'amber' ? 'bg-amber-500' : 'bg-[#0494f4]'
-                  }`}
-                />
-                <div className="min-w-0">
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">{n.app}</p>
-                  <p className="mt-0.5 text-[13px] font-semibold text-zinc-900 dark:text-zinc-100">{n.title}</p>
-                  <p className="mt-0.5 text-[12px] text-zinc-500 leading-relaxed">{n.body}</p>
-                  <p className="mt-1 text-[11px] text-zinc-400">{n.when}</p>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-      )}
 
       {/* Card 4 — app dock */}
       {dock && dock.length > 0 && (
