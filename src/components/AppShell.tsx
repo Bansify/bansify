@@ -159,7 +159,7 @@ export const AppShell: React.FC<AppShellProps> = ({
         </button>
       </div>
 
-      <nav className="px-2 space-y-0.5 overflow-y-auto">
+      <nav className="px-1 space-y-0.5 overflow-y-auto">
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = activeNav === item.id;
@@ -169,7 +169,7 @@ export const AppShell: React.FC<AppShellProps> = ({
               type="button"
               onClick={() => onNavSelect(item.id)}
               aria-current={active ? 'page' : undefined}
-              className={`relative w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-[13px] transition-colors cursor-pointer ${
+              className={`relative w-full flex items-center gap-2.5 px-2 py-2 rounded-xl text-[13px] transition-colors cursor-pointer ${
                 active
                   ? 'bg-[#0494f4]/12 text-[#0494f4] font-semibold'
                   : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-[#333333]'
@@ -227,27 +227,30 @@ export const AppShell: React.FC<AppShellProps> = ({
         </button>
         <div className="w-6 h-px bg-zinc-200 dark:bg-[#333333] my-1" />
 
-        {navItems.slice(0, 7).map((item) => {
-          const Icon = item.icon;
-          const active = activeNav === item.id;
-          return (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => onNavSelect(item.id)}
-              title={item.label}
-              aria-label={item.label}
-              aria-current={active ? 'page' : undefined}
-              className={`w-10 h-10 rounded-xl flex items-center justify-center cursor-pointer transition-colors ${
-                active
-                  ? 'bg-[#0494f4]/12 text-[#0494f4]'
-                  : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-[#333333]'
-              }`}
-            >
-              {Icon && <Icon className="w-[18px] h-[18px]" strokeWidth={1.75} />}
-            </button>
-          );
-        })}
+        {/* every destination, scrollable when the list is long */}
+        <div className="flex-1 min-h-0 w-full overflow-y-auto flex flex-col items-center gap-1">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const active = activeNav === item.id;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => onNavSelect(item.id)}
+                title={item.label}
+                aria-label={item.label}
+                aria-current={active ? 'page' : undefined}
+                className={`w-10 h-10 rounded-xl flex items-center justify-center cursor-pointer transition-colors ${
+                  active
+                    ? 'bg-[#0494f4]/12 text-[#0494f4]'
+                    : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-[#333333]'
+                }`}
+              >
+                {Icon && <Icon className="w-[18px] h-[18px]" strokeWidth={1.75} />}
+              </button>
+            );
+          })}
+        </div>
 
         <div className="mt-auto flex flex-col items-center gap-1">
           <button
