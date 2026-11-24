@@ -34,6 +34,7 @@ export const PageShell: React.FC<{
 
   return (
     <AppShell
+      title={SITE_NAV.find((n) => n.id === activePage)?.label ?? 'Bansify'}
       brandName="Bansify"
       brandLogoSrc="/assets/brand/logo.png"
       navItems={SITE_NAV}
