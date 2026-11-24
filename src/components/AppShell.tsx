@@ -9,6 +9,7 @@ import {
   Moon,
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import { SOCIAL_LINKS } from '../data/social';
 
 export interface ShellNavItem {
   id: string;
@@ -301,7 +302,34 @@ export const AppShell: React.FC<AppShellProps> = ({
   };
 
   return (
-    <div className="flex h-[100dvh] w-full gap-3 bg-[#f5f6f7] p-3 dark:bg-[#212121]">
+    <div className="flex h-[100dvh] w-full flex-col gap-3 bg-[#f5f6f7] p-3 dark:bg-[#212121]">
+      {/* top row: the search pill and the social card */}
+      <div className="flex gap-3 shrink-0">
+        <div className="flex-1 min-w-0 flex items-center h-12 px-4 rounded-full border border-zinc-200 bg-white dark:border-[#333333] dark:bg-[#2a2a2a]">
+          {searchSlot}
+        </div>
+
+        <div className="hidden sm:flex items-center gap-1.5 h-12 px-3 rounded-2xl border border-zinc-200 bg-white dark:border-[#333333] dark:bg-[#2a2a2a] overflow-x-auto">
+          {SOCIAL_LINKS.map((social) => {
+            const Icon = social.icon;
+            return (
+              <a
+                key={social.id}
+                href={social.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                title={`${social.label} · ${social.handle}`}
+                aria-label={`${social.label} ${social.handle}`}
+                className="group w-[34px] h-[34px] rounded-[10px] bg-[#0494f4] flex items-center justify-center shrink-0 ring-1 ring-black/5 dark:ring-white/10 transition group-hover:brightness-110"
+              >
+                <Icon className="w-4 h-4 text-white" strokeWidth={1.75} />
+              </a>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="flex flex-1 min-h-0 gap-3">
       <div className="hidden md:block shrink-0">{panel('desktop')}</div>
 
       {mobileNav && (
@@ -317,16 +345,15 @@ export const AppShell: React.FC<AppShellProps> = ({
       )}
 
       <main className="flex flex-1 min-w-0 flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-[#333333] dark:bg-[#2a2a2a]">
-        <div className="flex items-center gap-2 h-16 px-3 sm:px-4 shrink-0 border-b border-zinc-200 dark:border-[#333333]">
+        <div className="md:hidden flex items-center h-12 px-3 shrink-0 border-b border-zinc-200 dark:border-[#333333]">
           <button
             type="button"
             onClick={() => setMobileNav(true)}
             aria-label="Open navigation"
-            className="md:hidden w-8 h-8 rounded-lg flex items-center justify-center text-zinc-500 hover:bg-zinc-100 dark:hover:bg-[#333333] cursor-pointer"
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-500 hover:bg-zinc-100 dark:hover:bg-[#333333] cursor-pointer"
           >
             <Menu className="w-5 h-5" strokeWidth={1.75} />
           </button>
-          <div className="flex-1 min-w-0 flex items-center gap-2">{searchSlot}</div>
         </div>
         <div className="flex-1 min-h-0 overflow-y-auto">{children}</div>
       </main>
@@ -424,6 +451,7 @@ export const AppShell: React.FC<AppShellProps> = ({
           ))}
         </aside>
       )}
+      </div>
     </div>
   );
 };
