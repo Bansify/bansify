@@ -225,7 +225,7 @@ export const AppShell: React.FC<AppShellProps> = ({
         </div>
 
         {/* navigation */}
-        <div className={`flex-1 min-h-0 overflow-y-auto ${isOpen ? 'px-3' : 'px-0 flex flex-col items-center'}`}>
+        <div className={`flex-1 min-h-0 overflow-y-auto ${isOpen ? 'px-3' : 'px-0 flex flex-col items-center'} flex flex-col gap-1`}>
           {browse.map((item) => (
             <PanelRow key={item.id} item={item} active={activeNav === item.id} open={isOpen} onClick={() => onNavSelect(item.id)} />
           ))}
