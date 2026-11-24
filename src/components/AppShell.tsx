@@ -46,6 +46,13 @@ interface AppShellProps {
   children: React.ReactNode;
 }
 
+/** The brand mark in the dock's tile language: 36px, solid blue, soft corners. */
+const BrandTile: React.FC<{ src: string; name: string; className?: string }> = ({ src, name, className = '' }) => (
+  <span className={`w-[36px] h-[36px] rounded-[10px] bg-[#0494f4] overflow-hidden flex items-center justify-center ring-1 ring-black/5 dark:ring-white/10 shrink-0 ${className}`}>
+    <img src={src} alt={name} className="w-full h-full object-cover" />
+  </span>
+);
+
 /** Square brand-blue tile used by the dock — same shape and colour as the app list. */
 const DockTile: React.FC<{ item: RailItem; active?: boolean }> = ({ item, active }) => {
   const [failed, setFailed] = useState(false);
@@ -135,8 +142,12 @@ export const AppShell: React.FC<AppShellProps> = ({
       className="flex h-full w-60 shrink-0 flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-[#333333] dark:bg-[#2a2a2a]"
       aria-label="Navigation"
     >
-      <div className="flex items-center gap-2 h-14 px-4 shrink-0">
-        <span className="text-[13px] font-semibold text-zinc-900 dark:text-zinc-100 truncate">{title}</span>
+      <div className="flex items-center gap-2.5 h-14 px-3 shrink-0">
+        <BrandTile src={brandLogoSrc} name={brandName} />
+        <span className="min-w-0 leading-tight">
+          <span className="block text-[14px] font-black tracking-tight text-[#0494f4] truncate">{brandName}</span>
+          <span className="block text-[11px] font-semibold text-zinc-900 dark:text-zinc-100 truncate">Ecosystem</span>
+        </span>
         <button
           type="button"
           onClick={() => (mobileNav ? setMobileNav(false) : setNavOpen(false))}
@@ -212,7 +223,7 @@ export const AppShell: React.FC<AppShellProps> = ({
           title={navOpen ? 'Hide navigation' : 'Show navigation'}
           className="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-zinc-100 dark:hover:bg-[#333333] cursor-pointer"
         >
-          <img src={brandLogoSrc} alt={brandName} className="w-7 h-7 rounded-lg object-contain" />
+          <BrandTile src={brandLogoSrc} name={brandName} />
         </button>
         <div className="w-6 h-px bg-zinc-200 dark:bg-[#333333] my-1" />
 
@@ -391,9 +402,8 @@ export const AppShell: React.FC<AppShellProps> = ({
           </button>
           <div className="w-6 h-px bg-zinc-200 dark:bg-[#333333] mb-1" />
 
-          {dock.map((item, index) => (
+          {dock.map((item) => (
             <React.Fragment key={item.id}>
-              {index === Math.ceil(dock.length / 2) && <div className="w-6 h-px bg-zinc-200 dark:bg-[#333333] my-1" />}
               <button
                 type="button"
                 onClick={() => openPane(item)}
@@ -403,6 +413,7 @@ export const AppShell: React.FC<AppShellProps> = ({
               >
                 <DockTile item={item} active={panes.some((p) => p.id === item.id)} />
               </button>
+              <div className="w-5 h-px bg-zinc-200 dark:bg-[#333333]" />
             </React.Fragment>
           ))}
         </aside>
