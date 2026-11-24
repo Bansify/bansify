@@ -88,24 +88,30 @@ const PanelRow: React.FC<{
       title={item.label}
       aria-label={item.label}
       aria-current={active ? 'page' : undefined}
-      className={`group relative flex items-center h-10 rounded-xl cursor-pointer transition-colors ${
+      className={`group relative flex items-center h-10 rounded-xl cursor-pointer ${
         open ? 'w-full' : 'w-10'
-      } ${
-        active
-          ? 'bg-[#0494f4] text-white shadow-sm shadow-[#0494f4]/25'
-          : 'bg-zinc-100/80 text-zinc-900 hover:bg-zinc-200/80 dark:bg-[#303030] dark:text-zinc-100 dark:hover:bg-[#3a3a3a]'
-      }`}
+      } ${active ? 'text-white' : 'text-zinc-900 dark:text-zinc-100'}`}
     >
-      <span className="w-10 h-10 flex items-center justify-center shrink-0">
+      {/* the pill is inset by 2px top and bottom, so neighbours never touch while the
+          40px row keeps every icon exactly where it was */}
+      <span
+        aria-hidden
+        className={`absolute inset-x-0 top-[2px] bottom-[2px] rounded-xl transition-colors ${
+          active
+            ? 'bg-[#0494f4] shadow-sm shadow-[#0494f4]/25'
+            : 'bg-zinc-100/80 group-hover:bg-zinc-200/80 dark:bg-[#303030] dark:group-hover:bg-[#3a3a3a]'
+        }`}
+      />
+      <span className="relative w-10 h-10 flex items-center justify-center shrink-0">
         {Icon && <Icon className="w-[18px] h-[18px]" strokeWidth={1.75} />}
       </span>
 
       {open && (
         <>
-          <span className={`ml-2 truncate text-[13px] ${active ? 'font-semibold' : 'font-medium'}`}>{item.label}</span>
+          <span className={`relative ml-2 truncate text-[13px] ${active ? 'font-semibold' : 'font-medium'}`}>{item.label}</span>
           {item.badge && (
             <span
-              className={`ml-auto mr-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+              className={`relative ml-auto mr-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
                 active ? 'bg-white/25 text-white' : 'bg-white text-zinc-600 dark:bg-[#212121] dark:text-zinc-300'
               }`}
             >
