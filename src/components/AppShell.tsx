@@ -174,7 +174,8 @@ export const AppShell: React.FC<AppShellProps> = ({
 
   return (
     <div className="flex h-[100dvh] w-full gap-3 bg-[#f5f6f7] p-3 dark:bg-[#212121]">
-      {/* Card 1 — rail */}
+      {/* Card 1 — the rail. Collapsed markup is unchanged. */}
+      {!navOpen && (
       <aside
         className="hidden md:flex w-16 shrink-0 flex-col items-center gap-1 rounded-2xl border border-zinc-200 bg-white py-3 dark:border-[#333333] dark:bg-[#2a2a2a]"
         aria-label="Shortcuts"
@@ -250,6 +251,7 @@ export const AppShell: React.FC<AppShellProps> = ({
           </button>
         </div>
       </aside>
+      )}
 
       {/* Card 2 — navigation (desktop only; the drawer carries it on mobile) */}
       {navOpen && <div className="hidden md:block">{navCard}</div>}
