@@ -5,7 +5,6 @@ import {
   ArrowUpRight,
   ChevronLeft,
   ChevronRight,
-  Settings,
   Sun,
   Moon,
 } from 'lucide-react';
@@ -27,14 +26,12 @@ export interface RailItem {
 }
 
 interface AppShellProps {
-  /** Card 2 title, e.g. "Home", "All apps", "Products". */
   title?: string;
   navItems: ShellNavItem[];
   activeNav: string;
   onNavSelect: (id: string) => void;
   brandName: string;
   brandLogoSrc?: string;
-  /** Card 3 top row — the search box lives here. */
   searchSlot?: React.ReactNode;
   panelFooter?: React.ReactNode;
   dock?: RailItem[];
@@ -45,14 +42,14 @@ interface AppShellProps {
   children: React.ReactNode;
 }
 
-/** The brand mark in the dock's tile language: 36px, solid blue, soft corners. */
-const BrandTile: React.FC<{ src: string; name: string; className?: string }> = ({ src, name, className = '' }) => (
-  <span className={`w-[36px] h-[36px] rounded-[10px] bg-[#0494f4] overflow-hidden flex items-center justify-center ring-1 ring-black/5 dark:ring-white/10 shrink-0 ${className}`}>
+/* ── tiles ─────────────────────────────────────────────────────────────── */
+
+const BrandTile: React.FC<{ src: string; name: string }> = ({ src, name }) => (
+  <span className="w-9 h-9 rounded-[10px] bg-[#0494f4] overflow-hidden flex items-center justify-center ring-1 ring-black/5 dark:ring-white/10 shrink-0">
     <img src={src} alt={name} className="w-full h-full object-cover" />
   </span>
 );
 
-/** Square brand-blue tile used by the dock — same shape and colour as the app list. */
 const DockTile: React.FC<{ item: RailItem; active?: boolean }> = ({ item, active }) => {
   const [failed, setFailed] = useState(false);
   const Icon = item.icon;
@@ -63,13 +60,7 @@ const DockTile: React.FC<{ item: RailItem; active?: boolean }> = ({ item, active
       }`}
     >
       {item.logoSrc && !failed ? (
-        <img
-          src={item.logoSrc}
-          alt=""
-          loading="lazy"
-          onError={() => setFailed(true)}
-          className="w-full h-full object-cover"
-        />
+        <img src={item.logoSrc} alt="" loading="lazy" onError={() => setFailed(true)} className="w-full h-full object-cover" />
       ) : (
         <Icon className="w-1/2 h-1/2 text-white" strokeWidth={1.75} />
       )}
@@ -77,30 +68,68 @@ const DockTile: React.FC<{ item: RailItem; active?: boolean }> = ({ item, active
   );
 };
 
-const AppGlyph: React.FC<{ item: RailItem; className?: string }> = ({ item, className = 'w-5 h-5' }) => {
-  const [failed, setFailed] = useState(false);
-  const Icon = item.icon;
-  if (item.logoSrc && !failed) {
-    return (
-      <img
-        src={item.logoSrc}
-        alt=""
-        loading="lazy"
-        onError={() => setFailed(true)}
-        className={`${className} rounded-md object-contain`}
-      />
-    );
-  }
-  return <Icon className={`${className} text-zinc-500 dark:text-zinc-400`} strokeWidth={1.75} />;
-};
+/* ── the left panel ────────────────────────────────────────────────────── */
 
 /**
- * Four floating cards on a canvas:
- *   1 rail · 2 navigation · 3 content (search on top) · 4 app dock
- * Previews open as an extra card between the content and the dock.
+ * One row, used by both states, so the two can never drift apart: a 40px icon box that
+ * always sits 12px from the edge, and a label that appears when the panel is open.
  */
+const PanelRow: React.FC<{
+  item: ShellNavItem;
+  active: boolean;
+  open: boolean;
+  onClick: () => void;
+}> = ({ item, active, open, onClick }) => {
+  const Icon = item.icon;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={item.label}
+      aria-label={item.label}
+      aria-current={active ? 'page' : undefined}
+      className={`group relative flex items-center h-10 w-full rounded-xl cursor-pointer transition-colors ${
+        active ? 'text-[#0494f4]' : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
+      }`}
+    >
+      <span
+        className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+          active
+            ? 'bg-[#0494f4]/12'
+            : 'group-hover:bg-zinc-100 dark:group-hover:bg-[#333333]'
+        }`}
+      >
+        {Icon && <Icon className="w-[18px] h-[18px]" strokeWidth={1.75} />}
+      </span>
+
+      {open && (
+        <>
+          <span className={`ml-2 truncate text-[13px] ${active ? 'font-semibold' : 'font-medium'}`}>{item.label}</span>
+          {item.badge && (
+            <span
+              className={`ml-auto mr-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                active ? 'bg-[#0494f4] text-white' : 'bg-zinc-100 dark:bg-[#333333] text-zinc-500 dark:text-zinc-400'
+              }`}
+            >
+              {item.badge}
+            </span>
+          )}
+        </>
+      )}
+    </button>
+  );
+};
+
+const SectionLabel: React.FC<{ open: boolean; children: React.ReactNode }> = ({ open, children }) =>
+  open ? (
+    <p className="px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-[0.08em] text-zinc-400 dark:text-zinc-500">
+      {children}
+    </p>
+  ) : (
+    <div className="w-6 h-px my-2 bg-zinc-200 dark:bg-[#333333]" />
+  );
+
 export const AppShell: React.FC<AppShellProps> = ({
-  title = '',
   navItems,
   activeNav,
   onNavSelect,
@@ -116,7 +145,7 @@ export const AppShell: React.FC<AppShellProps> = ({
   children,
 }) => {
   const { isDark, toggleTheme } = useTheme();
-  const [navOpen, setNavOpen] = useState(true);
+  const [open, setOpen] = useState(true);
   const [mobileNav, setMobileNav] = useState(false);
   const [panes, setPanes] = useState<RailItem[]>([]);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
@@ -124,170 +153,141 @@ export const AppShell: React.FC<AppShellProps> = ({
   const openPane = (item: RailItem) =>
     setPanes((list) => (list.some((p) => p.id === item.id) ? list : [...list, item].slice(-2)));
 
-  const togglePaneCollapse = (id: string) =>
-    setCollapsed((map) => ({ ...map, [id]: !map[id] }));
-
+  const togglePaneCollapse = (id: string) => setCollapsed((map) => ({ ...map, [id]: !map[id] }));
   const initial = (profileName || 'B').slice(0, 1).toUpperCase();
 
-  const profileAvatarNode = (
+  const avatar = (
     <span className="w-9 h-9 rounded-full overflow-hidden bg-[#0494f4] text-white flex items-center justify-center text-xs font-bold shrink-0">
       {profileAvatar ? <img src={profileAvatar} alt="" className="w-full h-full object-cover" /> : initial}
     </span>
   );
 
-  /* ── Card 2: navigation ─────────────────────────────────────────────── */
-  const navCard = (
-    <aside
-      className="flex h-full w-60 shrink-0 flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-[#333333] dark:bg-[#2a2a2a]"
-      aria-label="Navigation"
-    >
-      <div className="flex items-center gap-2.5 h-16 px-3 shrink-0">
-        <BrandTile src={brandLogoSrc} name={brandName} />
-        <span className="min-w-0 text-[17px] font-black tracking-tight leading-none truncate">
-          <span className="text-[#0494f4]">{brandName}</span>{' '}
-          <span className="text-zinc-900 dark:text-zinc-100">Ecosystem</span>
-        </span>
-        <button
-          type="button"
-          onClick={() => (mobileNav ? setMobileNav(false) : setNavOpen(false))}
-          aria-label="Collapse navigation"
-          title="Collapse"
-          className="ml-auto w-7 h-7 rounded-lg flex items-center justify-center text-zinc-400 hover:bg-zinc-100 dark:hover:bg-[#333333] cursor-pointer"
-        >
-          {mobileNav ? <X className="w-4 h-4" strokeWidth={1.75} /> : <ChevronLeft className="w-4 h-4" strokeWidth={1.75} />}
-        </button>
-      </div>
+  const browse = navItems.slice(0, 5);
+  const ecosystem = navItems.slice(5);
 
-      <nav className="px-3 space-y-0 overflow-y-auto">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const active = activeNav === item.id;
-          return (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => onNavSelect(item.id)}
-              aria-current={active ? 'page' : undefined}
-              className={`relative w-full flex items-center gap-2 h-10 pr-2 rounded-xl text-[13px] transition-colors cursor-pointer ${
-                active ? 'text-[#0494f4] font-semibold' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
-              }`}
-            >
-              <span className={`w-10 h-10 rounded-[10px] p-0 flex items-center justify-center shrink-0 ${active ? 'bg-[#0494f4]/12' : ''}`}>
-                {Icon && <Icon className="w-[18px] h-[18px]" strokeWidth={1.75} />}
+  const panel = (variant: 'desktop' | 'drawer') => {
+    const isOpen = variant === 'drawer' ? true : open;
+    return (
+      <div
+        className={`flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-[#333333] dark:bg-[#2a2a2a] ${
+          isOpen ? 'w-[260px]' : 'w-16'
+        } ${variant === 'desktop' ? 'transition-[width] duration-200 ease-out' : ''}`}
+      >
+        {/* header */}
+        <div className={`flex items-center h-16 shrink-0 ${isOpen ? 'gap-2.5 px-3' : 'justify-center px-0'}`}>
+          {isOpen ? (
+            <>
+              <BrandTile src={brandLogoSrc} name={brandName} />
+              <span className="min-w-0 text-[16px] font-black tracking-tight leading-none truncate">
+                <span className="text-[#0494f4]">{brandName}</span>{' '}
+                <span className="text-zinc-900 dark:text-zinc-100">Ecosystem</span>
               </span>
-              <span className="truncate text-[13px]">{item.label}</span>
-              {item.badge && (
-                <span className="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-zinc-100 dark:bg-[#333333] text-zinc-500 dark:text-zinc-400">
-                  {item.badge}
-                </span>
+            </>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setOpen(true)}
+              title={`Open ${brandName}`}
+              aria-label="Expand panel"
+              className="rounded-[10px] cursor-pointer"
+            >
+              <BrandTile src={brandLogoSrc} name={brandName} />
+            </button>
+          )}
+
+          {isOpen && (
+            <button
+              type="button"
+              onClick={() => (variant === 'drawer' ? setMobileNav(false) : setOpen(false))}
+              title="Collapse"
+              aria-label="Collapse panel"
+              className="ml-auto w-7 h-7 rounded-lg flex items-center justify-center text-zinc-400 hover:bg-zinc-100 dark:hover:bg-[#333333] cursor-pointer shrink-0"
+            >
+              {variant === 'drawer' ? (
+                <X className="w-4 h-4" strokeWidth={1.75} />
+              ) : (
+                <ChevronLeft className="w-4 h-4" strokeWidth={1.75} />
               )}
             </button>
-          );
-        })}
-      </nav>
-
-      <div className="mt-auto">
-        {panelFooter && <div className="px-4 pb-3 text-[11px] text-zinc-500 leading-relaxed">{panelFooter}</div>}
-        <div className="mx-3 h-px bg-zinc-200 dark:bg-[#333333]" />
-        <div className="flex items-center gap-1 px-3 pt-2">
-          <button
-            type="button"
-            onClick={toggleTheme}
-            title={isDark ? 'Switch to light' : 'Switch to dark'}
-            aria-label="Toggle theme"
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-[#333333] cursor-pointer"
-          >
-            {isDark ? <Sun className="w-[16px] h-[16px]" strokeWidth={1.75} /> : <Moon className="w-[16px] h-[16px]" strokeWidth={1.75} />}
-          </button>
+          )}
         </div>
-        <button
-          type="button"
-          onClick={onProfileClick}
-          className="w-full flex items-center gap-2.5 px-3 py-3 hover:bg-zinc-50 dark:hover:bg-[#333333] cursor-pointer text-left"
-        >
-          {profileAvatarNode}
-          <span className="min-w-0">
-            {profileName && (
-              <span className="block text-[13px] font-semibold text-zinc-900 dark:text-zinc-100 truncate">{profileName}</span>
-            )}
-            {profileEmail && <span className="block text-[11px] text-zinc-500 truncate">{profileEmail}</span>}
-          </span>
-        </button>
-      </div>
-    </aside>
-  );
 
-  return (
-    <div className="flex h-[100dvh] w-full gap-3 bg-[#f5f6f7] p-3 dark:bg-[#212121]">
-      {/* Card 1 — the rail. Collapsed markup is unchanged. */}
-      {!navOpen && (
-      <aside
-        className="hidden md:flex w-16 shrink-0 flex-col items-center gap-0 rounded-2xl border border-zinc-200 bg-white py-2 dark:border-[#333333] dark:bg-[#2a2a2a]"
-        aria-label="Shortcuts"
-      >
-        <button
-          type="button"
-          onClick={() => setNavOpen((v) => !v)}
-          aria-label={navOpen ? 'Hide navigation' : 'Show navigation'}
-          title={navOpen ? 'Hide navigation' : 'Show navigation'}
-          className="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-zinc-100 dark:hover:bg-[#333333] cursor-pointer"
-        >
-          <BrandTile src={brandLogoSrc} name={brandName} />
-        </button>
-        <div className="w-6 h-px bg-zinc-200 dark:bg-[#333333] my-1" />
+        {/* navigation */}
+        <div className={`flex-1 min-h-0 overflow-y-auto ${isOpen ? 'px-3' : 'px-0 flex flex-col items-center'}`}>
+          {browse.map((item) => (
+            <PanelRow key={item.id} item={item} active={activeNav === item.id} open={isOpen} onClick={() => onNavSelect(item.id)} />
+          ))}
+          <SectionLabel open={isOpen}>Ecosystem</SectionLabel>
+          {ecosystem.map((item) => (
+            <PanelRow key={item.id} item={item} active={activeNav === item.id} open={isOpen} onClick={() => onNavSelect(item.id)} />
+          ))}
+        </div>
 
-        {/* every destination, scrollable when the list is long */}
-        <div className="flex-1 min-h-0 w-full overflow-y-auto flex flex-col items-center gap-0">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const active = activeNav === item.id;
-            return (
+        {/* footer */}
+        <div className="shrink-0">
+          {isOpen && panelFooter && (
+            <div className="px-4 pb-2 text-[11px] leading-relaxed text-zinc-500">{panelFooter}</div>
+          )}
+          <div className={`mx-3 h-px bg-zinc-200 dark:bg-[#333333] ${isOpen ? '' : 'mx-2'}`} />
+
+          {isOpen && (
+            <div className="flex items-center gap-1 px-3 pt-2">
               <button
-                key={item.id}
                 type="button"
-                onClick={() => onNavSelect(item.id)}
-                title={item.label}
-                aria-label={item.label}
-                aria-current={active ? 'page' : undefined}
-                className={`w-10 h-10 rounded-[10px] p-0 flex items-center justify-center cursor-pointer transition-colors ${
-                  active
-                    ? 'bg-[#0494f4]/12 text-[#0494f4]'
-                    : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-[#333333]'
-                }`}
+                onClick={toggleTheme}
+                title={isDark ? 'Switch to light' : 'Switch to dark'}
+                aria-label="Toggle theme"
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-[#333333] cursor-pointer"
               >
-                {Icon && <Icon className="w-[18px] h-[18px]" strokeWidth={1.75} />}
+                {isDark ? <Sun className="w-4 h-4" strokeWidth={1.75} /> : <Moon className="w-4 h-4" strokeWidth={1.75} />}
               </button>
-            );
-          })}
-        </div>
+            </div>
+          )}
 
-        <div className="mt-auto flex flex-col items-center gap-1">
-          <button
-            type="button"
-            onClick={() => setNavOpen((v) => !v)}
-            title={navOpen ? 'Hide navigation' : 'Show navigation'}
-            aria-label={navOpen ? 'Hide navigation' : 'Show navigation'}
-            className="w-10 h-10 rounded-xl flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-[#333333] cursor-pointer"
-          >
-            {navOpen ? <ChevronLeft className="w-4 h-4" strokeWidth={1.75} /> : <ChevronRight className="w-4 h-4" strokeWidth={1.75} />}
-          </button>
           <button
             type="button"
             onClick={onProfileClick}
             title={profileEmail || 'Account'}
             aria-label="Account"
-            className="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-zinc-100 dark:hover:bg-[#333333] cursor-pointer"
+            className={`w-full flex items-center gap-2.5 py-3 cursor-pointer hover:bg-zinc-50 dark:hover:bg-[#333333] ${
+              isOpen ? 'px-3' : 'justify-center px-0'
+            }`}
           >
-            {profileAvatarNode}
+            {avatar}
+            {isOpen && (profileName || profileEmail) && (
+              <span className="min-w-0 text-left">
+                {profileName && (
+                  <span className="block text-[13px] font-semibold text-zinc-900 dark:text-zinc-100 truncate">
+                    {profileName}
+                  </span>
+                )}
+                {profileEmail && <span className="block text-[11px] text-zinc-500 truncate">{profileEmail}</span>}
+              </span>
+            )}
           </button>
+
+          {!isOpen && (
+            <div className="flex justify-center pb-2">
+              <button
+                type="button"
+                onClick={() => setOpen(true)}
+                title="Expand panel"
+                aria-label="Expand panel"
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-400 hover:bg-zinc-100 dark:hover:bg-[#333333] cursor-pointer"
+              >
+                <ChevronRight className="w-4 h-4" strokeWidth={1.75} />
+              </button>
+            </div>
+          )}
         </div>
-      </aside>
-      )}
+      </div>
+    );
+  };
 
-      {/* Card 2 — navigation (desktop only; the drawer carries it on mobile) */}
-      {navOpen && <div className="hidden md:block">{navCard}</div>}
+  return (
+    <div className="flex h-[100dvh] w-full gap-3 bg-[#f5f6f7] p-3 dark:bg-[#212121]">
+      <div className="hidden md:block shrink-0">{panel('desktop')}</div>
 
-      {/* Mobile drawer */}
       {mobileNav && (
         <div className="fixed inset-0 z-50 md:hidden">
           <button
@@ -296,13 +296,12 @@ export const AppShell: React.FC<AppShellProps> = ({
             onClick={() => setMobileNav(false)}
             className="absolute inset-0 bg-black/40 cursor-default"
           />
-          <div className="absolute left-3 top-3 bottom-3">{navCard}</div>
+          <div className="absolute left-3 top-3 bottom-3">{panel('drawer')}</div>
         </div>
       )}
 
-      {/* Card 3 — content */}
       <main className="flex flex-1 min-w-0 flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-[#333333] dark:bg-[#2a2a2a]">
-        <div className="flex items-center gap-2 h-14 px-3 sm:px-4 shrink-0 border-b border-zinc-200 dark:border-[#333333]">
+        <div className="flex items-center gap-2 h-16 px-3 sm:px-4 shrink-0 border-b border-zinc-200 dark:border-[#333333]">
           <button
             type="button"
             onClick={() => setMobileNav(true)}
@@ -316,7 +315,6 @@ export const AppShell: React.FC<AppShellProps> = ({
         <div className="flex-1 min-h-0 overflow-y-auto">{children}</div>
       </main>
 
-      {/* Preview panes — extra cards between content and dock */}
       {panes.map((item) => {
         const isCollapsed = !!collapsed[item.id];
         return (
@@ -327,20 +325,24 @@ export const AppShell: React.FC<AppShellProps> = ({
             }`}
             aria-label={item.label}
           >
-            <div className={`flex items-center gap-2 h-14 px-3 shrink-0 border-b border-zinc-200 dark:border-[#333333] ${isCollapsed ? 'justify-center px-0' : ''}`}>
+            <div
+              className={`flex items-center gap-2 h-16 px-3 shrink-0 border-b border-zinc-200 dark:border-[#333333] ${
+                isCollapsed ? 'justify-center px-0' : ''
+              }`}
+            >
               {isCollapsed ? (
                 <button
                   type="button"
                   onClick={() => togglePaneCollapse(item.id)}
                   title={item.label}
                   aria-label={`Expand ${item.label}`}
-                  className="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-zinc-100 dark:hover:bg-[#333333] cursor-pointer"
+                  className="group w-10 h-10 rounded-xl flex items-center justify-center hover:bg-zinc-100 dark:hover:bg-[#333333] cursor-pointer"
                 >
-                  <AppGlyph item={item} />
+                  <DockTile item={item} />
                 </button>
               ) : (
                 <>
-                  <AppGlyph item={item} />
+                  <DockTile item={item} />
                   <span className="text-[13px] font-semibold truncate">{item.label}</span>
                   {item.url && (
                     <a
@@ -380,20 +382,13 @@ export const AppShell: React.FC<AppShellProps> = ({
         );
       })}
 
-      {/* Card 4 — app dock */}
       {dock && dock.length > 0 && (
         <aside
-          className="hidden lg:flex w-16 shrink-0 flex-col items-center gap-1 rounded-2xl border border-zinc-200 bg-white py-3 dark:border-[#333333] dark:bg-[#2a2a2a]"
+          className="hidden lg:flex w-16 shrink-0 flex-col items-center gap-0 rounded-2xl border border-zinc-200 bg-white py-2 dark:border-[#333333] dark:bg-[#2a2a2a]"
           aria-label="Bansify apps"
         >
-          <button
-            type="button"
-            onClick={onProfileClick}
-            title={profileEmail || 'Account'}
-            aria-label="Account"
-            className="mb-1 cursor-pointer"
-          >
-            {profileAvatarNode}
+          <button type="button" onClick={onProfileClick} title={profileEmail || 'Account'} aria-label="Account" className="mb-1 cursor-pointer">
+            {avatar}
           </button>
           <div className="w-6 h-px bg-zinc-200 dark:bg-[#333333] mb-1" />
 
@@ -404,7 +399,7 @@ export const AppShell: React.FC<AppShellProps> = ({
                 onClick={() => openPane(item)}
                 title={item.label}
                 aria-label={`Open ${item.label}`}
-                className="group cursor-pointer rounded-[12px]"
+                className="group cursor-pointer rounded-[10px]"
               >
                 <DockTile item={item} active={panes.some((p) => p.id === item.id)} />
               </button>
