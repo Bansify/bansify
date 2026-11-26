@@ -6,6 +6,10 @@
 # Order matters: specific redirects first, SPA fallback last.
 # ============================================================
 
+# Leadership site (separate host)
+/leadership     https://leadership.bansify.com/     301
+/leadership/*   https://leadership.bansify.com/:splat  301
+
 # 1) Enforce HTTPS + non-www canonical (SEO: stops www duplicate index)
 https://www.bansify.com/* https://bansify.com/:splat 301!
 http://www.bansify.com/* https://bansify.com/:splat 301!
